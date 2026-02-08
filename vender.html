@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vender Producto | Express Market</title>
+    <link rel="icon" type="image/jpg" href="https://i.ibb.co/xS9z1Xhg/IMG-20260207-163949.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --rojo: #ff4444; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding: 20px; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .logo { display: block; width: 60px; margin: 0 auto 15px; border-radius: 50%; }
+        h2 { text-align: center; color: var(--oscuro); font-size: 20px; margin-bottom: 20px; }
+        label { font-size: 12px; font-weight: bold; color: #777; display: block; margin-top: 10px; }
+        input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; background: #fafafa; font-size: 14px; }
+        .btn-vender { background: var(--naranja); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-vender:active { transform: scale(0.98); }
+        
+        .info-box { background: #e8f4fd; padding: 12px; border-radius: 10px; font-size: 12px; color: #2b5a83; margin-bottom: 20px; border-left: 4px solid var(--azul); display: flex; gap: 10px; align-items: center; }
+
+        /* ESTILOS DEL TOAST */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 320px; }
+        .toast-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-left: 5px solid var(--verde); display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s forwards; margin-bottom: 10px; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="container">
+    <img src="https://i.ibb.co/xS9z1Xhg/IMG-20260207-163949.jpg" class="logo">
+    <h2>Publicar mi Producto</h2>
+    
+    <div class="info-box">
+        <i class="fas fa-info-circle"></i> 
+        <span>Tu producto será revisado por el equipo de Express Market antes de aparecer en la tienda.</span>
+    </div>
+
+    <label>Nombre del Producto</label>
+    <input type="text" id="nombre" placeholder="Ej: Celular Samsung A54">
+
+    <label>Precio de Venta ($)</label>
+    <input type="number" id="precio" placeholder="Ej: 850000">
+
+    <label>Tu WhatsApp (con código de país)</label>
+    <input type="number" id="wa-vendedor" placeholder="Ej: 573155445183">
+
+    <label>Descripción corta</label>
+    <textarea id="desc" rows="3" placeholder="Estado del producto, tiempo de uso, etc..."></textarea>
+
+    <label>Link de la Imagen (ImgBB)</label>
+    <input type="text" id="url" placeholder="Pega el link directo aquí">
+
+    <button class="btn-vender" onclick="enviarRevision()">ENVIAR A REVISIÓN</button>
+    <p style="text-align: center; font-size: 11px; color: #999; margin-top: 15px;">Al enviar aceptas los términos de Express Market</p>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
+        authDomain: "express-market-868d9.firebaseapp.com",
+        projectId: "express-market-868d9",
+        storageBucket: "express-market-868d9.firebasestorage.app",
+        messagingSenderId: "502987186701",
+        appId: "1:502987186701:web:9fb3c28ce377fb27552b44"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // FUNCIÓN TOAST
+    function showToast(text, color = "var(--verde)", icon = "fa-check-circle") {
+        const container = document.getElementById('toast-container');
+        const card = document.createElement('div');
+        card.className = 'toast-card';
+        card.style.borderLeftColor = color;
+        card.innerHTML = `<i class="fas ${icon}" style="color:${color}; font-size: 20px;"></i> 
+                          <span style="font-size: 14px; color: #333; font-weight: 500;">${text}</span>`;
+        container.appendChild(card);
+        
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transition = '0.5s';
+            setTimeout(() => card.remove(), 500);
+        }, 3000);
+    }
+
+    window.enviarRevision = async () => {
+        const btn = document.querySelector('.btn-vender');
+        const datos = {
+            nombre: document.getElementById('nombre').value.trim(),
+            precio: Number(document.getElementById('precio').value),
+            waVendedor: document.getElementById('wa-vendedor').value.trim(),
+            descripcion: document.getElementById('desc').value,
+            imagen: document.getElementById('url').value.trim(),
+            estado: "pendiente",
+            categoria: "Externo",
+            fecha: serverTimestamp()
+        };
+
+        if(!datos.nombre || !datos.precio || !datos.waVendedor || !datos.imagen) {
+            showToast("Completa todos los campos", "var(--rojo)", "fa-exclamation-circle");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
+
+        try {
+            await addDoc(collection(db, "productos"), datos);
+            showToast("¡Recibido! Estará en revisión.");
+            
+            // Limpiar campos y resetear botón después de un momento
+            setTimeout(() => {
+                document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+                btn.disabled = false;
+                btn.innerText = "ENVIAR A REVISIÓN";
+            }, 2000);
+
+        } catch(e) {
+            showToast("Error al enviar", "var(--rojo)", "fa-times-circle");
+            btn.disabled = false;
+            btn.innerText = "ENVIAR A REVISIÓN";
+        }
+    };
+</script>
+</body>
+</html>
