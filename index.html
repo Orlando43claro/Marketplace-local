@@ -27,13 +27,18 @@
         .container { padding: 8px; max-width: 1200px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; position: relative; display: flex; flex-direction: column; transition: 0.3s; }
-        .card img { width: 100%; height: 140px; object-fit: contain; background: #fff; padding: 5px; cursor: pointer; }
+        
+        .card-image-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 140px; background: #fff; }
+        .card-image-slider::-webkit-scrollbar { display: none; }
+        .card-image-slider img { min-width: 100%; width: 100%; height: 140px; object-fit: contain; scroll-snap-align: start; padding: 5px; box-sizing: border-box; cursor: pointer; }
+        
         .card.agotado { opacity: 0.7; }
-        .card.agotado img { filter: grayscale(1); }
+        .card.agotado .card-image-slider img { filter: grayscale(1); }
 
         .stock-tag { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 3px 7px; border-radius: 5px; z-index: 10; }
         .promo-badge { position: absolute; top: 5px; right: 5px; background: var(--rojo); color: white; font-size: 11px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 10; }
-        .external-badge { position: absolute; bottom: 5px; left: 5px; background: var(--azul); color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .external-badge { position: absolute; bottom: 5px; left: 5px; background: var(--azul); color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; z-index: 10; }
+        .scroll-hint { position: absolute; top: 115px; right: 5px; background: rgba(0,0,0,0.5); color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; z-index: 11; pointer-events: none; }
 
         .info { padding: 10px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .info h3 { margin: 0; font-size: 13px; color: var(--oscuro); height: 32px; overflow: hidden; cursor: pointer; }
@@ -53,13 +58,18 @@
         .close-modal { position: absolute; top: 12px; right: 12px; font-size: 22px; color: #333; cursor: pointer; z-index: 10; background: #eee; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .modal-img { width: 100%; height: 230px; object-fit: contain; background: white; }
         
-        /* ESTRELLAS VALORACIÓN */
-        .rating-input { display: flex; flex-direction: row-reverse; justify-content: center; gap: 5px; margin: 5px 0; }
-        .rating-input input { display: none; }
-        .rating-input label { font-size: 26px; color: #ccc; cursor: pointer; transition: 0.2s; }
-        .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: var(--oro); }
+        .thumb-bar { display: flex; gap: 8px; padding: 10px; overflow-x: auto; background: #f9f9f9; border-bottom: 1px solid #eee; }
+        .thumb-bar img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
+        .thumb-bar img.active { border-color: var(--naranja); }
 
-        .resena-item { border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
+        /* ESTRELLAS VALORACIÓN MEJORADAS */
+        .rating-input { display: flex; flex-direction: row-reverse; justify-content: center; gap: 10px; margin: 10px 0; }
+        .rating-input input { display: none; }
+        .rating-input label { font-size: 30px; color: #ccc; cursor: pointer; transition: 0.2s; }
+        .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: var(--oro); transform: scale(1.1); }
+
+        .resena-item { border-bottom: 1px solid #f0f0f0; padding: 8px 0; animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         .resena-nombre { font-weight: bold; font-size: 11px; color: var(--oscuro); margin-bottom: 2px; display: block; }
 
         /* CARRITO */
@@ -73,7 +83,6 @@
         .cart-footer { padding: 20px; border-top: 1px solid #eee; background: #fff; }
         .btn-order { background: var(--naranja); color: white; border: none; display: block; text-align: center; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
 
-        /* TOASTS */
         #toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 5000; width: 90%; max-width: 320px; }
         .toast-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); border-left: 5px solid var(--verde); display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 8px; animation: slideDown 0.4s forwards; }
         @keyframes slideDown { from { opacity:0; transform: translateY(-20px); } to { opacity:1; transform: translateY(0); } }
@@ -101,8 +110,8 @@
 <div class="cat-bar" id="cat-bar">
     <button class="active" onclick="filterCat('Todos', this)">Todos</button>
     <button onclick="filterCat('Viveres', this)">Precios Bajos</button>
-    <button onclick="filterCat('Aseo', this)">Variedades</button>
-    <button onclick="filterCat('Bebidas', this)">5 Estrellas</button>
+    <button onclick="filterCat('Aseo', this)">Aseo</button>
+    <button onclick="filterCat('Bebidas', this)">Bebidas</button>
     <button onclick="filterCat('Externo', this)">📦 Externos</button>
     <button onclick="filterCat('Promociones', this)" style="color:red; font-weight:bold;">🔥 OFERTAS</button>
 </div>
@@ -118,7 +127,6 @@
         
         <div class="modal-body" style="background:#fcfcfc; border-top: 1px solid #eee; padding: 15px;">
             <h5 style="margin:0 0 5px; font-size: 13px; color: #555;">Valorar producto</h5>
-            
             <div class="rating-input">
                 <input type="radio" id="s5" name="stars" value="5"><label for="s5">★</label>
                 <input type="radio" id="s4" name="stars" value="4"><label for="s4">★</label>
@@ -126,15 +134,11 @@
                 <input type="radio" id="s2" name="stars" value="2"><label for="s2">★</label>
                 <input type="radio" id="s1" name="stars" value="1"><label for="s1">★</label>
             </div>
-
             <input type="text" id="review-user" placeholder="Tu nombre" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; font-size: 12px; box-sizing:border-box; margin-bottom: 5px;">
-            
             <textarea id="review-text" placeholder="¿Qué te pareció?" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; font-size: 12px; box-sizing:border-box;" rows="2"></textarea>
-            
             <div style="text-align: right;">
                 <button id="btn-send-review" class="btn-card-add" style="width:auto; padding:6px 15px; font-size: 10px; margin-top:5px;">PUBLICAR</button>
             </div>
-            
             <h5 style="margin:12px 0 8px; font-size: 13px; border-bottom: 2px solid var(--naranja); display:inline-block;">Opiniones</h5>
             <div id="reviews-container"></div>
         </div>
@@ -182,9 +186,9 @@
         const card = document.createElement('div');
         card.className = 'toast-card';
         card.style.borderLeftColor = color;
-        card.innerHTML = `<i class="fas fa-check-circle" style="color:${color};"></i> <span>${text}</span>`;
+        card.innerHTML = `<i class="fas ${color === 'var(--rojo)' ? 'fa-exclamation-circle' : 'fa-check-circle'}" style="color:${color};"></i> <span>${text}</span>`;
         container.appendChild(card);
-        setTimeout(() => { card.style.opacity = '0'; setTimeout(() => card.remove(), 500); }, 4000);
+        setTimeout(() => { card.style.opacity = '0'; setTimeout(() => card.remove(), 500); }, 3000);
     }
 
     onSnapshot(query(collection(db, "productos"), orderBy("fecha", "desc")), (snapshot) => {
@@ -210,6 +214,13 @@
             const agotado = stockNum <= 0;
             const tienePromo = p.precioOld > p.precio;
             let dcto = tienePromo ? Math.round(((p.precioOld - p.precio) / p.precioOld) * 100) : 0;
+            
+            const fotos = p.imagenes && p.imagenes.length > 0 ? p.imagenes : [p.imagen];
+            let sliderHtml = `<div class="card-image-slider">`;
+            fotos.forEach(f => {
+                sliderHtml += `<img src="${f}" onclick="openProduct('${p.id}')" loading="lazy">`;
+            });
+            sliderHtml += `</div>`;
 
             container.innerHTML += `
                 <div class="card ${agotado ? 'agotado' : ''}">
@@ -218,7 +229,8 @@
                     <span class="stock-tag" style="${agotado ? 'background:var(--rojo)' : ''}">
                         ${agotado ? '¡AGOTADO!' : 'Stock: ' + stockNum}
                     </span>
-                    <img src="${p.imagen}" onclick="openProduct('${p.id}')">
+                    ${fotos.length > 1 ? `<span class="scroll-hint"><i class="fas fa-images"></i> Desliza</span>` : ''}
+                    ${sliderHtml}
                     <div class="info">
                         <h3 onclick="openProduct('${p.id}')">${p.nombre}</h3>
                         <div class="stars-mini" onclick="openProduct('${p.id}')">
@@ -243,9 +255,19 @@
         const stockNum = Number(p.stock) || 0;
         const agotado = stockNum <= 0;
         const tienePromo = p.precioOld > p.precio;
+        const fotos = p.imagenes && p.imagenes.length > 0 ? p.imagenes : [p.imagen];
         
+        let galeriaHtml = `<img src="${fotos[0]}" class="modal-img" id="main-modal-img">`;
+        if(fotos.length > 1) {
+            galeriaHtml += `<div class="thumb-bar">`;
+            fotos.forEach((f) => {
+                galeriaHtml += `<img src="${f}" onclick="document.getElementById('main-modal-img').src='${f}'">`;
+            });
+            galeriaHtml += `</div>`;
+        }
+
         document.getElementById('modal-data').innerHTML = `
-            <img src="${p.imagen}" class="modal-img">
+            ${galeriaHtml}
             <div class="modal-body" style="padding:15px; padding-bottom:5px;">
                 <h2 style="margin:0; font-size:18px;">${p.nombre}</h2>
                 <div class="price-container" style="text-align:left; margin:8px 0;">
@@ -263,34 +285,33 @@
         loadReviews(id);
     };
 
-    window.closeModal = () => {
-        document.getElementById('product-modal').style.display = 'none';
-        selectedProdId = null;
+    window.closeModal = (e) => {
+        if(!e || e.target.id === 'product-modal' || e.target.className === 'close-modal') {
+            document.getElementById('product-modal').style.display = 'none';
+            selectedProdId = null;
+        }
     };
 
-    // --- SISTEMA DE RESEÑAS FIX ---
     async function loadReviews(prodId) {
         if(!prodId) return;
         const container = document.getElementById('reviews-container');
         container.innerHTML = '<p style="font-size:10px; color:#999;">Cargando...</p>';
-        
         try {
             const q = query(collection(db, "resenas"), where("idProducto", "==", prodId));
             const snapshot = await getDocs(q);
             container.innerHTML = '';
-
             if(snapshot.empty) {
                 container.innerHTML = '<p style="font-size:10px; color:#bbb; text-align:center;">Sin opiniones aún.</p>';
                 return;
             }
-
             let reviews = [];
             snapshot.forEach(doc => reviews.push(doc.data()));
-
+            
+            // ORDENAR POR FECHA: MÁS RECIENTES PRIMERO
             reviews.sort((a, b) => {
-                const dateA = a.fecha?.seconds || 0;
-                const dateB = b.fecha?.seconds || 0;
-                return dateB - dateA;
+                const fechaA = a.fecha?.seconds || 0;
+                const fechaB = b.fecha?.seconds || 0;
+                return fechaB - fechaA;
             });
 
             reviews.forEach(r => {
@@ -305,38 +326,35 @@
     }
 
     document.getElementById('btn-send-review').onclick = async () => {
-        const estrellas = document.querySelector('input[name="stars"]:checked')?.value;
-        const usuario = document.getElementById('review-user').value.trim();
-        const texto = document.getElementById('review-text').value.trim();
+        const estrellasInput = document.querySelector('input[name="stars"]:checked');
+        const usuarioInput = document.getElementById('review-user');
+        const textoInput = document.getElementById('review-text');
         const btn = document.getElementById('btn-send-review');
-        
-        if(!estrellas || !usuario || !texto || !selectedProdId) { 
-            showToast("Completa todos los campos", "var(--rojo)"); 
-            return; 
+
+        if(!estrellasInput || !usuarioInput.value.trim() || !textoInput.value.trim() || !selectedProdId) { 
+            showToast("Completa todos los campos", "var(--rojo)"); return; 
         }
 
         btn.disabled = true; btn.innerText = "...";
-
         try {
             await addDoc(collection(db, "resenas"), {
-                idProducto: selectedProdId,
-                nombreUsuario: usuario,
-                estrellas: Number(estrellas),
-                comentario: texto,
+                idProducto: selectedProdId, 
+                nombreUsuario: usuarioInput.value.trim(),
+                estrellas: Number(estrellasInput.value), 
+                comentario: textoInput.value.trim(), 
                 fecha: serverTimestamp()
             });
-
-            document.getElementById('review-user').value = '';
-            document.getElementById('review-text').value = '';
+            // LIMPIAR CAMPOS
+            usuarioInput.value = '';
+            textoInput.value = '';
             document.querySelectorAll('input[name="stars"]').forEach(i => i.checked = false);
             
             showToast("¡Reseña publicada!");
-            setTimeout(() => { loadReviews(selectedProdId); }, 800);
+            setTimeout(() => { loadReviews(selectedProdId); }, 500);
         } catch(e) { showToast("Error al guardar", "var(--rojo)"); } 
         finally { btn.disabled = false; btn.innerText = "PUBLICAR"; }
     };
 
-    // --- CARRITO ---
     window.addToCart = (id) => {
         const p = allProducts.find(item => item.id === id);
         const stockReal = Number(p.stock) || 0;
@@ -344,7 +362,7 @@
         const enCarrito = carrito.find(item => item.id === id);
         if (enCarrito) {
             if (enCarrito.cantidad < stockReal) { enCarrito.cantidad++; showToast("Agregado"); }
-            else showToast("Sin stock", "var(--rojo)");
+            else showToast("Stock agotado en tienda", "var(--rojo)");
         } else {
             carrito.push({ ...p, cantidad: 1 });
             showToast("Agregado");
@@ -356,8 +374,10 @@
         const item = carrito[index];
         const p = allProducts.find(prod => prod.id === item.id);
         const stockReal = Number(p.stock) || 0;
-        if (delta > 0 && item.cantidad < stockReal) item.cantidad++;
-        else if (delta < 0) {
+        if (delta > 0) {
+             if(item.cantidad < stockReal) item.cantidad++;
+             else showToast("Stock agotado", "var(--rojo)");
+        } else {
             if (item.cantidad > 1) item.cantidad--;
             else carrito.splice(index, 1);
         }
