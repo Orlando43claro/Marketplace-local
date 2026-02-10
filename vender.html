@@ -8,50 +8,74 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --rojo: #ff4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding: 20px; padding-bottom: 80px; }
+        
         .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .logo { display: block; width: 60px; margin: 0 auto 15px; border-radius: 50%; }
         h2 { text-align: center; color: var(--oscuro); font-size: 20px; margin-bottom: 20px; }
+        
         label { font-size: 12px; font-weight: bold; color: #777; display: block; margin-top: 10px; }
         input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; background: #fafafa; font-size: 14px; outline: none; }
         
         .btn-vender { background: var(--naranja); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .btn-vender:active { transform: scale(0.98); }
-        .btn-vender:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-vender:disabled { background: #ccc; }
 
-        /* MODAL DE INSTRUCCIONES */
-        #modal-instrucciones { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:10000; padding:20px; box-sizing:border-box; }
-        .inst-card { background:white; padding:25px; border-radius:20px; max-width:350px; width:100%; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
-        .inst-card h3 { color: var(--naranja); margin-top:0; text-align:center; }
-        .inst-item { display:flex; gap:12px; margin-bottom:15px; font-size:13px; line-height:1.4; color:#444; }
-        .inst-item i { color: var(--naranja); font-size:16px; margin-top:3px; }
-        .btn-ready { background:var(--oscuro); color:white; border:none; width:100%; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px; }
+        .mis-productos-container { max-width: 400px; margin: 30px auto; scroll-margin-top: 20px; }
+        .search-group { display: flex; gap: 8px; margin-bottom: 20px; }
+        .search-group input { margin: 0; flex: 1; border: 2px solid var(--azul); }
+        .btn-search { background: var(--oscuro); color: white; border: none; width: 55px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
 
-        /* TOAST */
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 320px; }
-        .toast-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-left: 5px solid var(--verde); display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s forwards; margin-bottom: 10px; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .prod-card-vendedor { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #eee; }
+        .prod-info-flex { display: flex; gap: 12px; align-items: center; }
+        .prod-info-flex img { width: 65px; height: 65px; object-fit: cover; border-radius: 10px; background: #f9f9f9; }
+        .prod-details { flex: 1; }
+        .prod-details strong { font-size: 14px; color: var(--oscuro); display: block; }
+        .badge-status { font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 5px; text-transform: uppercase; margin-top: 5px; display: inline-block; }
+        .status-pendiente { background: #fff3e0; color: #e65100; }
+        .status-aprobado { background: #e8f5e9; color: #2e7d32; }
+
+        .acciones-vendedor { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-edit-v { background: var(--azul); color: white; border: none; flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn-del-v { background: #fff1f1; color: var(--rojo); border: 1px solid var(--rojo); padding: 10px; border-radius: 8px; cursor: pointer; width: 45px; }
+
+        /* MODALES */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:10000; padding:20px; box-sizing:border-box; }
+        .modal-card { background:white; padding:25px; border-radius:25px; max-width:350px; width:100%; text-align: center; animation: popUp 0.3s ease; }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .btn-confirm { background: var(--rojo); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-cancel { background: var(--gris); color: var(--oscuro); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1; }
+
+        .step { margin-bottom: 15px; font-size: 13px; line-height: 1.5; color: #333; display: flex; gap: 10px; text-align: left; }
+        .step i { color: var(--naranja); font-size: 16px; margin-top: 2px; }
+        .btn-ready { background:var(--oscuro); color:white; border:none; width:100%; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; margin-top:10px; font-size: 15px; }
+
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10001; width: 90%; max-width: 320px; }
+        .toast-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); border-left: 5px solid var(--verde); display: flex; align-items: center; gap: 12px; margin-bottom: 10px; animation: slideDown 0.3s forwards; }
+        @keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="modal-instrucciones">
-    <div class="inst-card">
-        <h3>🚀 ¡Vende con éxito!</h3>
-        <div class="inst-item">
-            <i class="fas fa-camera"></i>
-            <span>Usa fotos con <b>buena iluminación</b> y fondo despejado para atraer más clientes.</span>
+<div id="modal-instrucciones" class="modal-overlay" style="display: flex;">
+    <div class="modal-card">
+        <h3 style="color: var(--naranja); margin-top:0;">🚀 Guía del Vendedor</h3>
+        <div class="step"><i class="fas fa-image"></i><span><b>Imagen:</b> Usa la <b>URL directa</b> (ej: i.ibb.co/foto.jpg) para que se vea bien.</span></div>
+        <div class="step"><i class="fas fa-check-circle"></i><span><b>Revisión:</b> Tu producto será verificado antes de aparecer en la tienda.</span></div>
+        <div class="step"><i class="fas fa-search"></i><span><b>Gestionar:</b> Usa la lupa 🔍 abajo con tu WhatsApp para editar o borrar.</span></div>
+        <button class="btn-ready" onclick="document.getElementById('modal-instrucciones').style.display='none'">¡ENTENDIDO!</button>
+    </div>
+</div>
+
+<div id="modal-eliminar" class="modal-overlay">
+    <div class="modal-card">
+        <i class="fas fa-trash-alt" style="font-size: 40px; color: var(--rojo); margin-bottom: 15px;"></i>
+        <h3 style="margin: 0 0 10px;">¿Eliminar producto?</h3>
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Esta acción no se puede deshacer y el producto desaparecerá de la tienda.</p>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-cancel" onclick="cerrarModalEliminar()">CANCELAR</button>
+            <button class="btn-confirm" id="confirmar-borrado">SÍ, ELIMINAR</button>
         </div>
-        <div class="inst-item">
-            <i class="fas fa-link"></i>
-            <span>Debes pegar el <b>Enlace Directo</b> de tu imagen (usa ImgBB o PostImages).</span>
-        </div>
-        <div class="inst-item">
-            <i class="fas fa-check-double"></i>
-            <span>Tu producto será verificado antes de ser publicado oficialmente.</span>
-        </div>
-        <button class="btn-ready" onclick="cerrarInstrucciones()">¡ENTENDIDO!</button>
     </div>
 </div>
 
@@ -59,36 +83,37 @@
 
 <div class="container">
     <img src="https://i.ibb.co/xS9z1Xhg/IMG-20260207-163949.jpg" class="logo">
-    <h2>Publicar mi Producto</h2>
-
+    <h2 id="form-title">Publicar mi Producto</h2>
+    <input type="hidden" id="edit-id">
+    <label>Tu WhatsApp (Sin espacios)</label>
+    <input type="number" id="wa-vendedor" placeholder="Ej: 573001234567">
     <label>Nombre del Producto</label>
-    <input type="text" id="nombre" placeholder="Ej: Celular Samsung A54">
-
+    <input type="text" id="nombre" placeholder="Ej: Arroz Diana 1kg">
     <label>Precio Hoy ($)</label>
-    <input type="number" id="precio" placeholder="Ej: 850000">
-
+    <input type="number" id="precio" placeholder="Valor actual">
     <label>Precio Antes ($) - Opcional</label>
-    <input type="number" id="precioOld" placeholder="Ej: 950000">
-
+    <input type="number" id="precioOld" placeholder="Ej: 5000">
     <label>Stock Disponible</label>
-    <input type="number" id="stock" placeholder="Ej: 1">
-
-    <label>Tu WhatsApp (con código de país)</label>
-    <input type="number" id="wa-vendedor" placeholder="Ej: 573155445183">
-
+    <input type="number" id="stock" placeholder="Cantidad en bodega">
     <label>Descripción corta</label>
-    <textarea id="desc" rows="3" placeholder="Estado del producto, detalles, etc..."></textarea>
+    <textarea id="desc" rows="3" placeholder="Estado, marca, etc..."></textarea>
+    <label>URL Directa de la Imagen (ImgBB)</label>
+    <input type="text" id="url" placeholder="https://i.ibb.co/xxxxx.jpg">
+    <button class="btn-vender" id="btn-main" onclick="procesarProducto()">ENVIAR A REVISIÓN</button>
+</div>
 
-    <label>Link Directo de Imagen (ImgBB)</label>
-    <input type="text" id="url" placeholder="https://i.ibb.co/...">
-
-    <button class="btn-vender" onclick="enviarRevision()">ENVIAR A REVISIÓN</button>
-    <p style="text-align: center; font-size: 11px; color: #999; margin-top: 15px;">Al enviar aceptas los términos de Express Market</p>
+<div class="mis-productos-container" id="seccion-gestion">
+    <h3 style="font-size: 16px; color: var(--oscuro); margin-bottom: 15px; text-align: center;"><i class="fas fa-edit"></i> Gestionar mis productos</h3>
+    <div class="search-group">
+        <input type="number" id="search-wa" placeholder="WhatsApp usado al publicar...">
+        <button class="btn-search" onclick="buscarMisProductos(true)"><i class="fas fa-search"></i></button>
+    </div>
+    <div id="lista-mis-productos"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -101,10 +126,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    window.cerrarInstrucciones = () => {
-        document.getElementById('modal-instrucciones').style.display = 'none';
-    };
+    let cacheProductos = [];
+    let idParaBorrar = null;
 
     function showToast(text, color = "var(--verde)", icon = "fa-check-circle") {
         const container = document.getElementById('toast-container');
@@ -112,24 +135,107 @@
         card.className = 'toast-card';
         card.style.borderLeftColor = color;
         card.innerHTML = `<i class="fas ${icon}" style="color:${color}; font-size: 20px;"></i> 
-                          <span style="font-size: 14px; color: #333; font-weight: 500;">${text}</span>`;
+                          <span style="font-size: 13px; color: #333; font-weight: bold;">${text}</span>`;
         container.appendChild(card);
-        setTimeout(() => {
-            card.style.opacity = '0';
-            card.style.transition = '0.5s';
-            setTimeout(() => card.remove(), 500);
-        }, 3000);
+        setTimeout(() => card.remove(), 3500);
     }
 
-    window.enviarRevision = async () => {
-        const btn = document.querySelector('.btn-vender');
+    window.buscarMisProductos = async (mostrarToastError = false) => {
+        const wa = document.getElementById('search-wa').value.trim();
+        const listaDiv = document.getElementById('lista-mis-productos');
+
+        if(!wa) { 
+            if(mostrarToastError) showToast("Ingresa tu número para buscar", "var(--rojo)", "fa-search"); 
+            return; 
+        }
+
+        listaDiv.innerHTML = '<p style="text-align:center; font-size:12px;">Cargando...</p>';
+
+        try {
+            const q = query(collection(db, "productos"), where("waVendedor", "==", wa));
+            const querySnapshot = await getDocs(q);
+            listaDiv.innerHTML = '';
+            cacheProductos = [];
+
+            if(querySnapshot.empty) {
+                listaDiv.innerHTML = '<p style="text-align:center; font-size:12px; color:#999;">No tienes productos aún.</p>';
+                return;
+            }
+
+            querySnapshot.forEach((pDoc) => {
+                const p = pDoc.data();
+                cacheProductos.push({ id: pDoc.id, ...p });
+                listaDiv.innerHTML += `
+                    <div class="prod-card-vendedor">
+                        <div class="prod-info-flex">
+                            <img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/65'">
+                            <div class="prod-details">
+                                <strong>${p.nombre}</strong>
+                                <span style="font-size:12px; color:var(--naranja);">$${p.precio.toLocaleString()}</span><br>
+                                <span class="badge-status ${p.estado === 'pendiente' ? 'status-pendiente' : 'status-aprobado'}">${p.estado}</span>
+                            </div>
+                        </div>
+                        <div class="acciones-vendedor">
+                            <button class="btn-edit-v" onclick="cargarParaEditar('${pDoc.id}')"><i class="fas fa-edit"></i> EDITAR</button>
+                            <button class="btn-del-v" onclick="abrirModalEliminar('${pDoc.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
+            });
+        } catch (e) { console.error(e); }
+    };
+
+    window.cargarParaEditar = (id) => {
+        const p = cacheProductos.find(x => x.id === id);
+        if(!p) return;
+        document.getElementById('edit-id').value = p.id;
+        document.getElementById('wa-vendedor').value = p.waVendedor;
+        document.getElementById('nombre').value = p.nombre;
+        document.getElementById('precio').value = p.precio;
+        document.getElementById('precioOld').value = p.precioOld || '';
+        document.getElementById('stock').value = p.stock;
+        document.getElementById('desc').value = p.descripcion;
+        document.getElementById('url').value = p.imagen;
+        document.getElementById('form-title').innerText = "Editando Producto";
+        document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
+        document.getElementById('btn-main').style.background = "var(--azul)";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // LÓGICA DEL MODAL DE ELIMINAR
+    window.abrirModalEliminar = (id) => {
+        idParaBorrar = id;
+        document.getElementById('modal-eliminar').style.display = 'flex';
+    };
+
+    window.cerrarModalEliminar = () => {
+        idParaBorrar = null;
+        document.getElementById('modal-eliminar').style.display = 'none';
+    };
+
+    document.getElementById('confirmar-borrado').onclick = async () => {
+        if(idParaBorrar) {
+            try {
+                await deleteDoc(doc(db, "productos", idParaBorrar));
+                showToast("Producto eliminado", "var(--rojo)", "fa-trash");
+                cerrarModalEliminar();
+                buscarMisProductos(false);
+            } catch (e) {
+                showToast("Error al eliminar", "var(--rojo)", "fa-times");
+            }
+        }
+    };
+
+    window.procesarProducto = async () => {
+        const idEdicion = document.getElementById('edit-id').value;
+        const btn = document.getElementById('btn-main');
+        const numWhatsApp = document.getElementById('wa-vendedor').value.trim();
+
         const datos = {
-            ciudad: "Todas", // Se guarda por defecto para no romper el filtro de la tienda
             nombre: document.getElementById('nombre').value.trim(),
             precio: Number(document.getElementById('precio').value),
             precioOld: document.getElementById('precioOld').value ? Number(document.getElementById('precioOld').value) : null,
             stock: Number(document.getElementById('stock').value) || 1,
-            waVendedor: document.getElementById('wa-vendedor').value.trim(),
+            waVendedor: String(numWhatsApp),
             descripcion: document.getElementById('desc').value,
             imagen: document.getElementById('url').value.trim(),
             estado: "pendiente",
@@ -138,30 +244,40 @@
         };
 
         if(!datos.nombre || !datos.precio || !datos.waVendedor || !datos.imagen) {
-            showToast("Completa los campos obligatorios", "var(--rojo)", "fa-exclamation-circle");
+            showToast("Completa los campos obligatorios", "var(--rojo)", "fa-exclamation-triangle");
             return;
         }
 
         btn.disabled = true;
-        btn.innerText = "ENVIANDO...";
+        btn.innerText = "PROCESANDO...";
 
         try {
-            await addDoc(collection(db, "productos"), datos);
-            showToast("¡Recibido! Estará en revisión pronto.");
+            if(idEdicion) {
+                await updateDoc(doc(db, "productos", idEdicion), datos);
+                showToast("¡Cambios guardados! En revisión", "var(--azul)", "fa-sync-alt");
+            } else {
+                await addDoc(collection(db, "productos"), datos);
+                showToast("¡Publicado! En revisión", "var(--verde)", "fa-check-circle");
+            }
+
+            document.getElementById('search-wa').value = numWhatsApp;
+            document.getElementById('edit-id').value = '';
+            document.getElementById('form-title').innerText = "Publicar mi Producto";
+            document.getElementById('btn-main').innerText = "ENVIAR A REVISIÓN";
+            document.getElementById('btn-main').style.background = "var(--naranja)";
+            document.querySelectorAll('input:not(#wa-vendedor):not(#search-wa), textarea').forEach(i => i.value = '');
+            btn.disabled = false;
             
+            buscarMisProductos(false);
             setTimeout(() => {
-                document.querySelectorAll('input, textarea').forEach(i => i.value = '');
-                btn.disabled = false;
-                btn.innerText = "ENVIAR A REVISIÓN";
-            }, 2000);
+                document.getElementById('seccion-gestion').scrollIntoView({ behavior: 'smooth' });
+            }, 600);
 
         } catch(e) {
-            showToast("Error al enviar datos", "var(--rojo)", "fa-times-circle");
+            showToast("Error al guardar", "var(--rojo)", "fa-times-circle");
             btn.disabled = false;
-            btn.innerText = "ENVIAR A REVISIÓN";
         }
     };
 </script>
 </body>
 </html>
-
