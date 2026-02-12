@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YaMi | ¡Lo pides, lo tienes!</title>
-    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/flash-on.png">
+    <link rel="icon" type="image/png" href="https://i.ibb.co/CRZNPpf/1770824892177.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --rojo: #d91e18; --azul: #2196F3; --oro: #ffb400; }
+        :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --rojo: #d91e18; --azul: #2196F3; --oro: #ffb400; --violeta: #6200ea; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding-top: 115px; }
 
         /* NAVBAR Y CATEGORÍAS */
@@ -26,18 +26,35 @@
         .cat-bar button { padding: 7px 15px; border-radius: 20px; border: 1px solid #ddd; background: #fff; font-size: 13px; white-space: nowrap; cursor: pointer; transition: 0.3s; }
         .cat-bar button.active { background: var(--naranja); color: #fff; border-color: var(--naranja); font-weight: bold; }
 
+        /* --- BANNERS MEJORADOS --- */
+        .banner-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 10px 8px; scrollbar-width: none; scroll-behavior: smooth; }
+        .banner-scroll::-webkit-scrollbar { display: none; }
+        .banner-item { min-width: 88%; flex-shrink: 0; scroll-snap-align: center; border-radius: 18px; padding: 15px; color: white; position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 120px; box-sizing: border-box; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        /* Etiqueta anuncio con parpadeo */
+        .badge-anuncio { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; animation: blink-anuncio 1.5s infinite; }
+        @keyframes blink-anuncio { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .banner-text-content { flex: 1; padding-top: 15px; padding-right: 10px; }
+        .banner-item img { width: 85px; height: 85px; object-fit: contain; flex-shrink: 0; }
+        .banner-item i { font-size: 45px; opacity: 0.6; }
+
         /* GRID PRODUCTOS */
         .container { padding: 8px; max-width: 1200px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; position: relative; display: flex; flex-direction: column; transition: 0.3s; }
         
-        /* MEJORA CARRUSEL CARD */
+        /* ETIQUETAS ESPECIALES */
+        .promo-badge-combo { position: absolute; top: 35px; right: 5px; background: var(--violeta); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .promo-badge-regalo { position: absolute; top: 5px; right: 5px; background: var(--verde); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 10; animation: flash 1.5s infinite; }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* CARRUSEL CARD */
         .image-container { position: relative; height: 140px; }
         .card-image-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 100%; background: #fff; scroll-behavior: smooth; }
         .card-image-slider::-webkit-scrollbar { display: none; }
         .card-image-slider img { min-width: 100%; width: 100%; height: 140px; object-fit: contain; scroll-snap-align: start; padding: 5px; box-sizing: border-box; cursor: pointer; }
         
-        /* INDICADORES DE FOTOS */
         .img-counter { position: absolute; top: 35px; right: 8px; background: rgba(0,0,0,0.6); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; z-index: 12; }
         .swipe-hint { position: absolute; top: 60px; right: 8px; color: var(--naranja); font-size: 14px; z-index: 12; animation: handSwipe 2s infinite; text-shadow: 0 0 5px white; }
         @keyframes handSwipe { 0% { transform: translateX(0); opacity: 0; } 50% { transform: translateX(-15px); opacity: 1; } 100% { transform: translateX(0); opacity: 0; } }
@@ -64,30 +81,17 @@
         .btn-card-add { background: var(--naranja); color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; }
         .btn-card-add:disabled { background: #888 !important; cursor: not-allowed; }
 
+        .combos-section { margin-top: 30px; padding: 15px 0; border-top: 2px solid #eee; }
+        .combos-scroll { display: flex; overflow-x: auto; gap: 15px; padding: 10px; scrollbar-width: none; }
+        .combos-scroll::-webkit-scrollbar { display: none; }
+        .combo-card-mini { min-width: 160px; background: white; border-radius: 12px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid #ff6b0033; text-align: center; }
+        .combo-card-mini img { width: 100%; height: 100px; object-fit: contain; }
+
         /* MODAL */
-        .modal { 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background: rgba(0,0,0,0.85); 
-            display: none; justify-content: center; align-items: flex-start; 
-            z-index: 5000; 
-            padding: 15px; 
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
-        }
-        .modal-content { 
-            background: white; width: 100%; max-width: 380px; 
-            border-radius: 20px; position: relative; 
-            margin: 40px 0; 
-            animation: zoomIn 0.3s; 
-            overflow: hidden;
-        }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 5000; padding: 15px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .modal-content { background: white; width: 100%; max-width: 380px; border-radius: 20px; position: relative; margin: 40px 0; animation: zoomIn 0.3s; overflow: hidden; }
         @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .close-modal { 
-            position: absolute; top: 12px; right: 12px; font-size: 22px; 
-            color: #333; cursor: pointer; z-index: 100; 
-            background: #eee; width: 30px; height: 30px; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-        }
+        .close-modal { position: absolute; top: 12px; right: 12px; font-size: 22px; color: #333; cursor: pointer; z-index: 100; background: #eee; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .modal-img { width: 100%; height: 230px; object-fit: contain; background: white; }
         
         .thumb-bar { display: flex; gap: 8px; padding: 10px; overflow-x: auto; background: #f9f9f9; border-bottom: 1px solid #eee; }
@@ -147,14 +151,29 @@
 </div>
 
 <div class="container">
+    <div id="banner-container" class="banner-scroll">
+        <div class="banner-item" style="background: linear-gradient(135deg, var(--oscuro), var(--naranja));">
+            <span class="badge-anuncio">Anuncio</span>
+            <div class="banner-text-content">
+                <h2 style="margin:0; font-size: 1.1rem; color: white;">Cargando YaMi...⚡</h2>
+                <p style="margin:5px 0 0; font-size: 0.75rem; color: white; opacity: 0.9;">Preparando lo mejor para ti.</p>
+            </div>
+            <img src="https://i.ibb.co/CRZNPpf/1770824892177.png">
+        </div>
+    </div>
+
     <div class="grid" id="productos-container"></div>
+
+    <div class="combos-section" id="combos-wrapper" style="display:none;">
+        <h2 style="font-size: 18px; padding: 0 10px;">Combos del Mes 🔥</h2>
+        <div class="combos-scroll" id="combos-container"></div>
+    </div>
 </div>
 
 <div id="product-modal" class="modal" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <span class="close-modal" onclick="closeModal()">×</span>
         <div id="modal-data"></div>
-        
         <div class="modal-body" style="background:#fcfcfc; border-top: 1px solid #eee; padding: 15px;">
             <h5 style="margin:0 0 5px; font-size: 13px; color: #555;">Valorar producto</h5>
             <div class="rating-input">
@@ -211,20 +230,46 @@
     let currentCat = "Todos";
     let selectedProdId = null;
 
-    function showToast(text, color = "var(--verde)") {
-        const container = document.getElementById('toast-container');
-        const card = document.createElement('div');
-        card.className = 'toast-card';
-        card.style.borderLeftColor = color;
-        card.innerHTML = `<i class="fas ${color === 'var(--rojo)' ? 'fa-exclamation-circle' : 'fa-check-circle'}" style="color:${color};"></i> <span>${text}</span>`;
-        container.appendChild(card);
-        setTimeout(() => { card.style.opacity = '0'; setTimeout(() => card.remove(), 500); }, 3000);
-    }
+    // --- ESCUCHAR BANNERS CON SLIDE AUTOMÁTICO ---
+    let bannerInterval;
+    onSnapshot(query(collection(db, "banners"), orderBy("orden", "asc")), (snapshot) => {
+        const container = document.getElementById('banner-container');
+        if (snapshot.empty) return;
+        
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+            const b = doc.data();
+            const tag = b.link ? 'a' : 'div';
+            const href = b.link ? `href="${b.link}" target="_blank"` : '';
+            
+            container.innerHTML += `
+                <${tag} ${href} class="banner-item" style="background: ${b.color || 'var(--oscuro)'}; text-decoration:none;">
+                    <span class="badge-anuncio">Anuncio</span>
+                    <div class="banner-text-content">
+                        <h2 style="margin:0; font-size: 1.1rem; color: white; line-height: 1.2;">${b.titulo}</h2>
+                        <p style="margin:5px 0 0; font-size: 0.75rem; color: white; opacity: 0.9;">${b.subtitulo}</p>
+                    </div>
+                    ${b.imagen ? `<img src="${b.imagen}">` : `<i class="${b.icono || 'fas fa-bolt'}" style="color:white;"></i>`}
+                </${tag}>`;
+        });
+
+        // Configuración de Slide Automático (cada 4 segundos)
+        if(bannerInterval) clearInterval(bannerInterval);
+        bannerInterval = setInterval(() => {
+            const scrollWidth = container.offsetWidth;
+            if (container.scrollLeft + scrollWidth >= container.scrollWidth) {
+                container.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                container.scrollBy({ left: scrollWidth, behavior: 'smooth' });
+            }
+        }, 4000);
+    });
 
     onSnapshot(query(collection(db, "productos"), orderBy("fecha", "desc")), (snapshot) => {
         allProducts = [];
         snapshot.forEach(doc => allProducts.push({id: doc.id, ...doc.data()}));
         renderProducts();
+        renderCombos();
     });
 
     window.filterCat = (cat, btn) => {
@@ -246,9 +291,13 @@
             let dcto = tienePromo ? Math.round(((p.precioOld - p.precio) / p.precioOld) * 100) : 0;
             const fotos = p.imagenes && p.imagenes.length > 0 ? p.imagenes : [p.imagen];
             
-            // Render del carrusel mejorado
+            const esCombo = p.nombre.toLowerCase().includes('combo') || p.nombre.toLowerCase().includes('2x1');
+            const esRegalo = p.descripcion && p.descripcion.toLowerCase().includes('gratis');
+
             let sliderHtml = `
                 <div class="image-container">
+                    ${esCombo ? `<span class="promo-badge-combo">COMBO 🔥</span>` : ''}
+                    ${esRegalo ? `<span class="promo-badge-regalo">REGALO 🎁</span>` : ''}
                     ${fotos.length > 1 ? `
                         <div class="img-counter" id="counter-${p.id}">1/${fotos.length}</div>
                         <div class="swipe-hint" id="hint-${p.id}"><i class="fas fa-hand-pointer"></i></div>
@@ -287,21 +336,33 @@
         });
     }
 
-    // Función para actualizar los indicadores mientras se desliza
+    function renderCombos() {
+        const wrapper = document.getElementById('combos-wrapper');
+        const container = document.getElementById('combos-container');
+        const combos = allProducts.filter(p => p.nombre.toLowerCase().includes('combo') || p.nombre.toLowerCase().includes('2x1'));
+        if (combos.length > 0) {
+            wrapper.style.display = 'block';
+            container.innerHTML = '';
+            combos.forEach(p => {
+                container.innerHTML += `
+                    <div class="combo-card-mini" onclick="openProduct('${p.id}')">
+                        <img src="${p.imagenes ? p.imagenes[0] : p.imagen}">
+                        <h4 style="font-size:12px; margin:8px 0; height:30px; overflow:hidden;">${p.nombre}</h4>
+                        <div style="color:var(--verde); font-weight:bold; font-size:14px;">$${Number(p.precio).toLocaleString()}</div>
+                    </div>`;
+            });
+        } else { wrapper.style.display = 'none'; }
+    }
+
     window.updateSliderUI = (id, total) => {
         const slider = document.getElementById(`slider-${id}`);
         const counter = document.getElementById(`counter-${id}`);
         const hint = document.getElementById(`hint-${id}`);
         const dots = document.querySelectorAll(`#dots-${id} .dot`);
-        
         const index = Math.round(slider.scrollLeft / slider.offsetWidth);
-        
         if (counter) counter.innerText = `${index + 1}/${total}`;
-        if (hint && index > 0) hint.style.display = 'none'; // Quitar mano al deslizar
-        
-        dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === index);
-        });
+        if (hint && index > 0) hint.style.display = 'none';
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
 
     window.openProduct = async (id) => {
@@ -311,14 +372,12 @@
         const agotado = stockNum <= 0;
         const tienePromo = p.precioOld > p.precio;
         const fotos = p.imagenes && p.imagenes.length > 0 ? p.imagenes : [p.imagen];
-        
         let galeriaHtml = `<img src="${fotos[0]}" class="modal-img" id="main-modal-img">`;
         if(fotos.length > 1) {
             galeriaHtml += `<div class="thumb-bar">`;
             fotos.forEach((f) => { galeriaHtml += `<img src="${f}" onclick="document.getElementById('main-modal-img').src='${f}'">`; });
             galeriaHtml += `</div>`;
         }
-
         document.getElementById('modal-data').innerHTML = `
             ${galeriaHtml}
             <div class="modal-body" style="padding:15px;">
@@ -330,10 +389,9 @@
                 <p style="color:#666; font-size:13px; margin-bottom:15px;">${p.descripcion || 'Sin descripción.'}</p>
                 <button class="btn-card-add" style="width:100%; padding:12px; font-size:15px;" 
                     onclick="addToCart('${p.id}'); closeModal();" ${agotado ? 'disabled' : ''}>
-                    ${agotado ? 'AGOTADO' : 'AGREGAR AL PEDIDO'}
+                    ${agotado ? 'AGORTADO' : 'AGREGAR AL PEDIDO'}
                 </button>
             </div>`;
-        
         document.getElementById('product-modal').style.display = 'flex';
         document.body.style.overflow = 'hidden'; 
         loadReviews(id);
@@ -366,7 +424,7 @@
                 container.innerHTML += `
                     <div class="resena-item">
                         <span class="resena-nombre">${r.nombreUsuario || 'Anónimo'}</span>
-                        <div style="color:var(--oro); font-size:9px;">${'★'.repeat(r.estrellas)}${'★'.repeat(5-r.estrellas)}</div>
+                        <div style="color:var(--oro); font-size:9px;">${'★'.repeat(r.estrellas)}${'☆'.repeat(5-r.estrellas)}</div>
                         <p style="margin:2px 0; font-size:12px; color:#444;">${r.comentario}</p>
                     </div>`;
             });
@@ -378,11 +436,9 @@
         const usuarioInput = document.getElementById('review-user');
         const textoInput = document.getElementById('review-text');
         const btn = document.getElementById('btn-send-review');
-
         if(!estrellasInput || !usuarioInput.value.trim() || !textoInput.value.trim() || !selectedProdId) { 
             showToast("Completa todos los campos", "var(--rojo)"); return; 
         }
-
         btn.disabled = true; btn.innerText = "...";
         try {
             await addDoc(collection(db, "resenas"), {
@@ -392,8 +448,7 @@
                 comentario: textoInput.value.trim(), 
                 fecha: serverTimestamp()
             });
-            usuarioInput.value = '';
-            textoInput.value = '';
+            usuarioInput.value = ''; textoInput.value = '';
             document.querySelectorAll('input[name="stars"]').forEach(i => i.checked = false);
             showToast("¡Reseña publicada!");
             setTimeout(() => { loadReviews(selectedProdId); }, 500);
@@ -458,9 +513,7 @@
         totalEl.innerText = `$${total.toLocaleString()}`;
     }
 
-    window.toggleCart = () => {
-        document.getElementById('cart-sidebar').classList.toggle('active');
-    };
+    window.toggleCart = () => { document.getElementById('cart-sidebar').classList.toggle('active'); };
 
     window.crearPedido = async () => {
         const nombre = document.getElementById('client-name').value.trim();
@@ -479,6 +532,16 @@
             showToast("¡Pedido enviado!");
         } catch (e) { showToast("Error", "var(--rojo)"); }
     };
+
+    function showToast(text, color = "var(--verde)") {
+        const container = document.getElementById('toast-container');
+        const card = document.createElement('div');
+        card.className = 'toast-card';
+        card.style.borderLeftColor = color;
+        card.innerHTML = `<i class="fas ${color === 'var(--rojo)' ? 'fa-exclamation-circle' : 'fa-check-circle'}" style="color:${color};"></i> <span>${text}</span>`;
+        container.appendChild(card);
+        setTimeout(() => { card.style.opacity = '0'; setTimeout(() => card.remove(), 500); }, 3000);
+    }
 </script>
 </body>
 </html>
