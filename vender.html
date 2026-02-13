@@ -3,173 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vender en YaMi | ¡Lo pides, lo tienes!</title>
+    <title>Socio YaMi | Panel Único</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/flash-on.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --rojo: #ff4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding: 20px; padding-bottom: 80px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding: 20px; }
         
-        /* Logo Estilo YaMi */
-        .logo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-        .yami-icon { background: var(--naranja); color: white; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; transform: rotate(-10deg); font-weight: bold; box-shadow: 0 4px 10px rgba(255,107,0,0.3); }
-        .yami-text { color: var(--oscuro); font-weight: 900; font-size: 1.8rem; letter-spacing: -1px; margin-top: 5px; }
+        .view { display: none; max-width: 400px; margin: auto; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: var(--oscuro); font-size: 20px; margin-bottom: 20px; letter-spacing: -0.5px; }
+        .card { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative; }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .yami-icon { background: var(--naranja); color: white; width: 45px; height: 45px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; transform: rotate(-10deg); font-weight: bold; }
         
-        /* BOTÓN FLOTANTE DE AYUDA (Color Naranja) */
-        .fab-ayuda {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 55px;
-            height: 55px;
-            background: var(--naranja); /* CAMBIADO A NARANJA */
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4); /* Sombra naranja */
-            cursor: pointer;
-            z-index: 999;
-            border: none;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .fab-ayuda:hover { transform: scale(1.1) rotate(10deg); background: var(--oscuro); }
+        h2 { text-align: center; color: var(--oscuro); font-size: 1.2rem; margin-bottom: 20px; }
+        label { font-size: 11px; font-weight: 800; color: #94a3b8; display: block; margin-top: 10px; margin-left: 5px; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1.5px solid #edf2f7; border-radius: 12px; box-sizing: border-box; background: #f8fafc; font-size: 14px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--naranja); background: white; }
 
-        label { font-size: 12px; font-weight: bold; color: #777; display: block; margin-top: 10px; margin-left: 5px; }
-        input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #eee; border-radius: 12px; box-sizing: border-box; background: #fafafa; font-size: 14px; outline: none; transition: 0.3s; }
-        input:focus, textarea:focus { border-color: var(--naranja); background: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        .btn-naranja { background: var(--naranja); color: white; box-shadow: 0 4px 15px rgba(255,107,0,0.2); }
+        .btn-logout { background: #fee2e2; color: var(--rojo); padding: 8px 12px; width: auto; font-size: 11px; font-weight: 800; border-radius: 10px; border: none; cursor: pointer; }
+
+        .prod-card { background: white; padding: 12px; border-radius: 18px; margin-top: 12px; display: flex; gap: 12px; align-items: center; border: 1px solid #eee; }
+        .prod-card img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
         
-        .btn-vender { background: var(--naranja); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; box-shadow: 0 4px 15px rgba(255,107,0,0.2); }
-        .btn-vender:disabled { background: #ccc; box-shadow: none; }
-
-        .helper-text { font-size: 10px; color: #999; margin-top: -10px; margin-bottom: 10px; display: block; line-height: 1.3; padding: 0 5px; }
-
-        /* MODAL GUÍA CENTRADO */
-        #modal-instrucciones { 
-            position: fixed; top:0; left:0; width:100%; height:100%; 
-            background: rgba(35, 47, 62, 0.85); 
-            display: flex; justify-content: center; align-items: center; 
-            z-index: 10000; padding: 20px; box-sizing: border-box; 
-        }
-        .inst-card { 
-            background: white; padding: 30px; border-radius: 35px; 
-            max-width: 380px; width: 100%; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            text-align: left;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
-        .inst-card h3 { color: var(--naranja); margin: 10px 0 25px; text-align: center; font-size: 26px; font-weight: 900; }
-        .step { margin-bottom: 20px; font-size: 14px; line-height: 1.5; color: #444; display: flex; gap: 15px; align-items: flex-start; }
-        .step i { color: var(--naranja); font-size: 20px; margin-top: 3px; width: 25px; text-align: center; }
-        .btn-ready { background: var(--oscuro); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; text-transform: uppercase; }
-
-        /* GESTIÓN DE PRODUCTOS */
-        .mis-productos-container { max-width: 400px; margin: 30px auto; }
-        .search-group { display: flex; gap: 8px; margin-bottom: 20px; }
-        .search-group input { margin: 0; flex: 1; border: 2px solid var(--azul); }
-        .btn-search { background: var(--oscuro); color: white; border: none; width: 55px; border-radius: 12px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-
-        .prod-card-vendedor { background: white; padding: 15px; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
-        .prod-info-flex { display: flex; gap: 12px; align-items: center; }
-        .prod-info-flex img { width: 65px; height: 65px; object-fit: cover; border-radius: 12px; background: #f9f9f9; }
-        .prod-details { flex: 1; }
-        .prod-details strong { font-size: 14px; color: var(--oscuro); display: block; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; display: none; font-weight: bold; font-size: 13px; border-left: 5px solid var(--naranja); }
         
-        .badge-status { font-size: 9px; font-weight: bold; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; margin-top: 5px; display: inline-block; }
-        .status-pendiente { background: #fff3e0; color: #e65100; }
-        .status-aprobado { background: #e8f5e9; color: #2e7d32; }
-
-        .acciones-vendedor { display: flex; gap: 8px; margin-top: 12px; }
-        .btn-edit-v { background: var(--azul); color: white; border: none; flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .btn-del-v { background: #fff1f1; color: var(--rojo); border: 1px solid #ffebeb; padding: 10px; border-radius: 10px; cursor: pointer; width: 45px; }
-
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10001; width: 90%; max-width: 320px; }
-        .toast-card { background: white; padding: 15px; border-radius: 15px; border-left: 6px solid var(--verde); display: flex; align-items: center; gap: 12px; margin-bottom: 10px; animation: slideDown 0.4s forwards; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<button class="fab-ayuda" onclick="document.getElementById('modal-instrucciones').style.display='flex'">
-    <i class="fas fa-question"></i>
-</button>
+<div id="toast"></div>
 
-<div id="modal-instrucciones">
-    <div class="inst-card">
-        <div class="logo-container" style="margin-bottom: 0px;">
+<div id="modal-bienvenida" class="modal">
+    <div class="card" style="max-width:350px; text-align:center;">
+        <div class="yami-icon" style="margin-bottom:15px;"><i class="fas fa-rocket"></i></div>
+        <h2 style="color:var(--naranja); margin-top:0;">¡Bienvenido Socio!</h2>
+        <p style="font-size:14px; color:#444; line-height:1.5;">Tu perfil ha sido creado. Antes de publicar, recuerda:</p>
+        <div style="background:#f0f7ff; padding:15px; border-radius:15px; text-align:left; margin-bottom:20px;">
+            <p style="font-size:13px; margin:0;">
+                <i class="fas fa-camera" style="color:var(--azul);"></i> <b>Fotos:</b> Sube tus fotos a <b>ImgBB</b> y pega aquí el "Enlace directo".<br><br>
+                <i class="fas fa-link" style="color:var(--azul);"></i> <b>Varios:</b> Separa los links con una coma (,).
+            </p>
+        </div>
+        <button class="btn btn-naranja" onclick="cerrarBienvenida()">¡ENTENDIDO, A VENDER!</button>
+    </div>
+</div>
+
+<div id="view-login" class="view">
+    <div class="card">
+        <div class="logo-container">
             <div class="yami-icon"><i class="fas fa-bolt"></i></div>
+            <h1 style="margin: 5px 0; font-size: 24px;">YaMi Socios</h1>
         </div>
-        <h3>Guía YaMi Socio</h3>
-        
-        <div class="step">
-            <i class="fas fa-camera-retro"></i>
-            <span><b>Fotos:</b> Pega los links de tus fotos separados por coma (,). ¡Usa ImgBB para mejores resultados!</span>
-        </div>
-        
-        <div class="step">
-            <i class="fas fa-bolt"></i>
-            <span><b>Rapidez:</b> Una vez aprobado, tu producto aparecerá con el sello de <b>Externo</b>.</span>
-        </div>
-        
-        <div class="step">
-            <i class="fas fa-shield-alt"></i>
-            <span><b>Control:</b> Puedes editar precios o stock en cualquier momento usando tu WhatsApp.</span>
-        </div>
-        
-        <button class="btn-ready" onclick="document.getElementById('modal-instrucciones').style.display='none'">¡COMENZAR A VENDER!</button>
+        <h2>Ingresa a tu Tienda</h2>
+        <label>WhatsApp</label>
+        <input type="number" id="log-wa" placeholder="Ej: 573123456789">
+        <label>Código de 4 dígitos</label>
+        <input type="password" id="log-code" maxlength="4" placeholder="****">
+        <button class="btn btn-naranja" onclick="login()">ENTRAR AL PANEL</button>
+        <button class="btn" style="background:none; color:var(--azul); margin-top:10px;" onclick="switchView('view-register')">¿No tienes cuenta? Regístrate</button>
     </div>
 </div>
 
-<div id="toast-container"></div>
-
-<div class="container">
-    <div class="logo-container">
-        <div class="yami-icon"><i class="fas fa-bolt"></i></div>
-        <span class="yami-text">YaMi</span>
+<div id="view-register" class="view">
+    <div class="card">
+        <h2>Únete como Socio</h2>
+        <label>Nombre de tu Tienda</label>
+        <input type="text" id="reg-tienda" placeholder="Ej: Hamburguesas el Socio">
+        <label>WhatsApp</label>
+        <input type="number" id="reg-wa" placeholder="Ej: 573123456789">
+        <label>Crea un Código (4 dígitos)</label>
+        <input type="password" id="reg-code" maxlength="4" placeholder="Ej: 1234">
+        <button class="btn btn-naranja" onclick="registrarSocio()">CREAR MI PERFIL</button>
+        <button class="btn" style="background:none; color:var(--azul); margin-top:10px;" onclick="switchView('view-login')">Ya soy socio</button>
     </div>
-    
-    <h2 id="form-title">Publicar Producto</h2>
-    <input type="hidden" id="edit-id">
-    
-    <label>WhatsApp de contacto (Sin espacios)</label>
-    <input type="number" id="wa-vendedor" placeholder="Ej: 573155445183">
-    
-    <label>¿Qué estás vendiendo?</label>
-    <input type="text" id="nombre" placeholder="Ej: Hamburguesa Artesanal">
-    
-    <label>Precio de Venta ($)</label>
-    <input type="number" id="precio" placeholder="Valor que verá el cliente">
-    
-    <label>Precio de Lista/Antes ($) - Opcional</label>
-    <input type="number" id="precioOld" placeholder="Para mostrar descuento">
-    
-    <label>Unidades Disponibles</label>
-    <input type="number" id="stock" placeholder="Cantidad actual">
-    
-    <label>Cuéntanos más del producto</label>
-    <textarea id="desc" rows="3" placeholder="Detalles, ingredientes, tallas, etc..."></textarea>
-    
-    <label>Links de Imagen (URL)</label>
-    <input type="text" id="url" placeholder="link1.jpg, link2.jpg...">
-    <span class="helper-text">Pega los links separados por coma. La primera foto será la principal.</span>
-    
-    <button class="btn-vender" id="btn-main" onclick="procesarProducto()">SUBIR A YAMI</button>
 </div>
 
-<div class="mis-productos-container" id="seccion-gestion">
-    <h3 style="font-size: 15px; color: var(--oscuro); margin-bottom: 15px; text-align: center; font-weight: 800;"><i class="fas fa-store"></i> MI INVENTARIO</h3>
-    <div class="search-group">
-        <input type="number" id="search-wa" placeholder="Tu WhatsApp usado...">
-        <button class="btn-search" onclick="buscarMisProductos(true)"><i class="fas fa-search"></i></button>
+<div id="view-vender" class="view">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <span id="header-tienda" style="font-weight: 900; color: var(--oscuro); font-size: 18px;">🏪 Mi Tienda</span>
+        <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> SALIR</button>
     </div>
-    <div id="lista-mis-productos"></div>
+
+    <div class="card">
+        <h2 id="form-title" style="margin-bottom:10px;">Publicar Producto</h2>
+        <input type="hidden" id="edit-id">
+        
+        <label>Nombre del Producto</label>
+        <input type="text" id="p-nombre" placeholder="¿Qué vendes hoy?">
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1">
+                <label>Precio Hoy ($)</label>
+                <input type="number" id="p-precio" placeholder="15000">
+            </div>
+            <div style="flex:1">
+                <label>Stock</label>
+                <input type="number" id="p-stock" placeholder="10">
+            </div>
+        </div>
+        
+        <label>Descripción Corta</label>
+        <textarea id="p-desc" rows="2" placeholder="Detalles, ingredientes, etc."></textarea>
+        
+        <label>Links de Fotos (ImgBB)</label>
+        <input type="text" id="p-url" placeholder="link1, link2...">
+        
+        <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">SUBIR A YAMI</button>
+    </div>
+
+    <div id="inventario" style="margin-top: 30px;">
+        <h3 style="font-size: 14px; text-align: center; color: var(--oscuro); font-weight: 800;"><i class="fas fa-box-open"></i> MI INVENTARIO</h3>
+        <div id="lista-productos"></div>
+    </div>
 </div>
 
 <script type="module">
@@ -187,151 +138,158 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    let cacheProductos = [];
+    let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
 
-    function showToast(text, color = "var(--verde)", icon = "fa-check-circle") {
-        const container = document.getElementById('toast-container');
-        const card = document.createElement('div');
-        card.className = 'toast-card';
-        card.style.borderLeftColor = color;
-        card.innerHTML = `<i class="fas ${icon}" style="color:${color}; font-size: 20px;"></i> 
-                          <span style="font-size: 13px; color: #333; font-weight: bold;">${text}</span>`;
-        container.appendChild(card);
-        setTimeout(() => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(-20px)';
-            setTimeout(() => card.remove(), 400);
-        }, 3000);
+    // --- NAVEGACIÓN ---
+    window.switchView = (id) => {
+        document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    };
+
+    function notify(text) {
+        const t = document.getElementById('toast');
+        t.innerText = text; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    window.buscarMisProductos = async (mostrarToastError = false) => {
-        const wa = document.getElementById('search-wa').value.trim();
-        const listaDiv = document.getElementById('lista-mis-productos');
-        if(!wa) { if(mostrarToastError) showToast("Ingresa tu número", "var(--rojo)", "fa-search"); return; }
+    // --- LOGOUT (IR A TIENDA) ---
+    window.logout = () => {
+        localStorage.removeItem('vendedorActual');
+        notify("Cerrando sesión... Volviendo a la tienda");
+        setTimeout(() => { window.location.href = 'index.html'; }, 600);
+    };
 
-        listaDiv.innerHTML = '<p style="text-align:center; font-size:12px; color:#666;">Buscando tus productos...</p>';
+    // --- REGISTRO CON BIENVENIDA ---
+    window.registrarSocio = async () => {
+        const tienda = document.getElementById('reg-tienda').value.trim();
+        const wa = document.getElementById('reg-wa').value.trim();
+        const code = document.getElementById('reg-code').value.trim();
+
+        if(!tienda || !wa || !code) return notify("Faltan datos");
 
         try {
-            const q = query(collection(db, "productos"), where("waVendedor", "==", wa));
-            const querySnapshot = await getDocs(q);
-            listaDiv.innerHTML = '';
-            cacheProductos = [];
+            await addDoc(collection(db, "socios"), { nombreTienda: tienda, celular: wa, codigo: code });
+            sesion = { celular: wa, tienda: tienda };
+            localStorage.setItem('vendedorActual', JSON.stringify(sesion));
+            
+            document.getElementById('modal-bienvenida').style.display = 'flex';
+        } catch(e) { notify("Error al registrar"); }
+    };
 
-            if(querySnapshot.empty) {
-                listaDiv.innerHTML = '<p style="text-align:center; font-size:12px; color:#999; padding: 20px; background: white; border-radius: 15px;">No tienes productos aún con este número.</p>';
-                return;
+    window.cerrarBienvenida = () => {
+        document.getElementById('modal-bienvenida').style.display = 'none';
+        initPanel();
+    };
+
+    // --- LOGIN ---
+    window.login = async () => {
+        const wa = document.getElementById('log-wa').value.trim();
+        const code = document.getElementById('log-code').value.trim();
+        if(!wa || !code) return notify("Escribe tus datos");
+
+        const q = query(collection(db, "socios"), where("celular", "==", wa));
+        const snap = await getDocs(q);
+        let valid = false;
+        snap.forEach(d => {
+            if(d.data().codigo == code) {
+                sesion = { celular: wa, tienda: d.data().nombreTienda };
+                localStorage.setItem('vendedorActual', JSON.stringify(sesion));
+                valid = true;
             }
-
-            querySnapshot.forEach((pDoc) => {
-                const p = pDoc.data();
-                cacheProductos.push({ id: pDoc.id, ...p });
-                const fotoPortada = (p.imagenes && p.imagenes.length > 0) ? p.imagenes[0] : (p.imagen || 'https://via.placeholder.com/65');
-                
-                listaDiv.innerHTML += `
-                    <div class="prod-card-vendedor">
-                        <div class="prod-info-flex">
-                            <img src="${fotoPortada}">
-                            <div class="prod-details">
-                                <strong>${p.nombre}</strong>
-                                <span style="font-size:12px; color:var(--naranja); font-weight:bold;">$${Number(p.precio).toLocaleString()}</span><br>
-                                <span class="badge-status ${p.estado === 'pendiente' ? 'status-pendiente' : 'status-aprobado'}">${p.estado}</span>
-                            </div>
-                        </div>
-                        <div class="acciones-vendedor">
-                            <button class="btn-edit-v" onclick="cargarParaEditar('${pDoc.id}')"><i class="fas fa-edit"></i> EDITAR</button>
-                            <button class="btn-del-v" onclick="eliminarProducto('${pDoc.id}')"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>`;
-            });
-        } catch (e) { console.error(e); }
+        });
+        if(valid) initPanel(); else notify("Datos incorrectos");
     };
 
-    window.cargarParaEditar = (id) => {
-        const p = cacheProductos.find(x => x.id === id);
-        if(!p) return;
-        document.getElementById('edit-id').value = p.id;
-        document.getElementById('wa-vendedor').value = p.waVendedor;
-        document.getElementById('nombre').value = p.nombre;
-        document.getElementById('precio').value = p.precio;
-        document.getElementById('precioOld').value = p.precioOld || '';
-        document.getElementById('stock').value = p.stock;
-        document.getElementById('desc').value = p.descripcion;
+    // --- PANEL DE VENTAS ---
+    function initPanel() {
+        switchView('view-vender');
+        document.getElementById('header-tienda').innerText = "🏪 " + sesion.tienda;
+        renderInventario();
+    }
+
+    window.guardarProducto = async () => {
+        const idEdit = document.getElementById('edit-id').value;
+        const urlInput = document.getElementById('p-url').value.trim();
+        if(!urlInput) return notify("Pega el link de la foto");
         
-        if(p.imagenes && p.imagenes.length > 0) {
-            document.getElementById('url').value = p.imagenes.join(', ');
-        } else {
-            document.getElementById('url').value = p.imagen || '';
-        }
-
-        document.getElementById('form-title').innerText = "Editando en YaMi";
-        document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
-        document.getElementById('btn-main').style.background = "var(--azul)";
-        document.getElementById('btn-main').style.boxShadow = "0 4px 15px rgba(33,150,243,0.3)";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.eliminarProducto = async (id) => {
-        if(confirm("¿Estás seguro de eliminar este producto?")) {
-            await deleteDoc(doc(db, "productos", id));
-            showToast("Producto borrado", "var(--rojo)", "fa-trash");
-            buscarMisProductos(false);
-        }
-    };
-
-    window.procesarProducto = async () => {
-        const idEdicion = document.getElementById('edit-id').value;
+        const urls = urlInput.split(',').map(u => u.trim());
         const btn = document.getElementById('btn-main');
-        const numWhatsApp = document.getElementById('wa-vendedor').value.trim();
-        const urlInput = document.getElementById('url').value.trim();
-
-        const arrayImagenes = urlInput.split(',').map(link => link.trim()).filter(link => link !== "");
 
         const datos = {
-            nombre: document.getElementById('nombre').value.trim(),
-            precio: Number(document.getElementById('precio').value),
-            precioOld: document.getElementById('precioOld').value ? Number(document.getElementById('precioOld').value) : null,
-            stock: Number(document.getElementById('stock').value) || 1,
-            waVendedor: String(numWhatsApp),
-            descripcion: document.getElementById('desc').value,
-            imagen: arrayImagenes[0] || "", 
-            imagenes: arrayImagenes,
+            nombre: document.getElementById('p-nombre').value,
+            precio: Number(document.getElementById('p-precio').value),
+            stock: Number(document.getElementById('p-stock').value),
+            descripcion: document.getElementById('p-desc').value,
+            imagenes: urls,
+            imagen: urls[0],
+            waVendedor: sesion.celular,
+            nombreTienda: sesion.tienda,
             estado: "pendiente",
             categoria: "Externo",
             fecha: serverTimestamp()
         };
 
-        if(!datos.nombre || !datos.precio || !datos.waVendedor || arrayImagenes.length === 0) {
-            showToast("Completa los datos", "var(--rojo)", "fa-exclamation-triangle");
-            return;
-        }
-
         btn.disabled = true;
-        btn.innerText = "YAMI PROCESANDO...";
-
         try {
-            if(idEdicion) {
-                await updateDoc(doc(db, "productos", idEdicion), datos);
-                showToast("¡Actualizado con éxito!", "var(--azul)", "fa-sync-alt");
-            } else {
-                await addDoc(collection(db, "productos"), datos);
-                showToast("¡Enviado a revisión!", "var(--verde)", "fa-check-circle");
-            }
+            if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
+            else await addDoc(collection(db, "productos"), datos);
+            notify("¡Producto guardado!");
+            resetForm();
+            renderInventario();
+        } catch(e) { notify("Error al guardar"); }
+        btn.disabled = false;
+    };
 
-            document.getElementById('search-wa').value = numWhatsApp;
-            document.getElementById('edit-id').value = '';
-            document.getElementById('form-title').innerText = "Publicar Producto";
-            document.getElementById('btn-main').innerText = "SUBIR A YAMI";
-            document.getElementById('btn-main').style.background = "var(--naranja)";
-            
-            document.querySelectorAll('input:not(#wa-vendedor):not(#search-wa), textarea').forEach(i => i.value = '');
-            btn.disabled = false;
-            
-            buscarMisProductos(false);
-            setTimeout(() => { document.getElementById('seccion-gestion').scrollIntoView({ behavior: 'smooth' }); }, 500);
+    async function renderInventario() {
+        const q = query(collection(db, "productos"), where("waVendedor", "==", sesion.celular));
+        const snap = await getDocs(q);
+        const lista = document.getElementById('lista-productos');
+        lista.innerHTML = '';
+        snap.forEach(d => {
+            const p = d.data();
+            lista.innerHTML += `
+                <div class="prod-card">
+                    <img src="${p.imagen}">
+                    <div style="flex:1">
+                        <b style="font-size:13px;">${p.nombre}</b><br>
+                        <small style="color:var(--naranja); font-weight:800;">$${Number(p.precio).toLocaleString()}</small>
+                    </div>
+                    <button onclick="window.prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagenes.join(',')}')" style="border:none; background:none; color:var(--azul); font-size:18px;"><i class="fas fa-edit"></i></button>
+                    <button onclick="window.eliminar('${d.id}')" style="border:none; background:none; color:var(--rojo); font-size:18px;"><i class="fas fa-trash"></i></button>
+                </div>`;
+        });
+    }
 
-        } catch(e) {
-            showToast("Error de conexión", "var(--rojo)", "fa-times-circle");
-            btn.disabled = false;
+    window.prepararEdit = (id, n, p, s, d, imgs) => {
+        document.getElementById('edit-id').value = id;
+        document.getElementById('p-nombre').value = n;
+        document.getElementById('p-precio').value = p;
+        document.getElementById('p-stock').value = s;
+        document.getElementById('p-desc').value = d;
+        document.getElementById('p-url').value = imgs;
+        document.getElementById('form-title').innerText = "Editando Producto";
+        document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    };
+
+    window.eliminar = async (id) => {
+        if(confirm("¿Seguro que quieres borrar este producto?")) {
+            await deleteDoc(doc(db, "productos", id));
+            renderInventario();
+            notify("Producto eliminado");
         }
     };
+
+    function resetForm() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('form-title').innerText = "Publicar Producto";
+        document.getElementById('btn-main').innerText = "SUBIR A YAMI";
+        document.querySelectorAll('#view-vender input, #view-vender textarea').forEach(i => i.value = '');
+    }
+
+    // ARRANQUE INICIAL
+    if(sesion) initPanel(); else switchView('view-login');
+
 </script>
+</body>
+</html>
