@@ -26,12 +26,11 @@
         .cat-bar button { padding: 7px 15px; border-radius: 20px; border: 1px solid #ddd; background: #fff; font-size: 13px; white-space: nowrap; cursor: pointer; transition: 0.3s; }
         .cat-bar button.active { background: var(--naranja); color: #fff; border-color: var(--naranja); font-weight: bold; }
 
-        /* --- BANNERS MEJORADOS --- */
+        /* BANNERS MEJORADOS */
         .banner-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 10px 8px; scrollbar-width: none; scroll-behavior: smooth; }
         .banner-scroll::-webkit-scrollbar { display: none; }
         .banner-item { min-width: 88%; flex-shrink: 0; scroll-snap-align: center; border-radius: 18px; padding: 15px; color: white; position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 120px; box-sizing: border-box; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
         
-        /* Etiqueta anuncio con parpadeo */
         .badge-anuncio { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; animation: blink-anuncio 1.5s infinite; }
         @keyframes blink-anuncio { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
@@ -44,6 +43,13 @@
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; position: relative; display: flex; flex-direction: column; transition: 0.3s; }
         
+        /* ESTILO PARA PRODUCTO PRO Y OFICIAL */
+        .card.pro-card { border: 2px solid var(--oro); }
+        .card.official-card { border: 2px solid var(--violeta); box-shadow: 0 4px 15px rgba(98, 0, 234, 0.2); }
+
+        .badge-pro-vendedor { background: var(--oro); color: var(--oscuro); font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 5px; text-transform: uppercase; }
+        .badge-official-vendedor { background: var(--violeta); color: white; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 5px; text-transform: uppercase; }
+
         /* ETIQUETAS ESPECIALES */
         .promo-badge-combo { position: absolute; top: 35px; right: 5px; background: var(--violeta); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .promo-badge-regalo { position: absolute; top: 5px; right: 5px; background: var(--verde); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 10; animation: flash 1.5s infinite; }
@@ -221,11 +227,23 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     let allProducts = [];
+    let allSocios = {}; 
     let carrito = [];
     let currentCat = "Todos";
     let selectedProdId = null;
+    const NUMERO_YAMI = "3155445183"; // Tu número oficial
 
-    // --- CARGAR CATEGORÍAS DINÁMICAS (NUEVO) ---
+    // CARGAR SOCIOS
+    onSnapshot(collection(db, "socios"), (snapshot) => {
+        allSocios = {};
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            allSocios[data.celular] = data.plan;
+        });
+        renderProducts();
+    });
+
+    // CARGAR CATEGORÍAS
     const catBar = document.getElementById('cat-bar');
     onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snapshot) => {
         catBar.innerHTML = `<button class="${currentCat === 'Todos' ? 'active' : ''}" id="btn-todos" onclick="filterCat('Todos', this)">Todos</button>`;
@@ -239,18 +257,16 @@
         });
     });
 
-    // --- ESCUCHAR BANNERS ---
+    // ESCUCHAR BANNERS
     let bannerInterval;
     onSnapshot(query(collection(db, "banners"), orderBy("orden", "asc")), (snapshot) => {
         const container = document.getElementById('banner-container');
         if (snapshot.empty) return;
-        
         container.innerHTML = '';
         snapshot.forEach(doc => {
             const b = doc.data();
             const tag = b.link ? 'a' : 'div';
             const href = b.link ? `href="${b.link}" target="_blank"` : '';
-            
             container.innerHTML += `
                 <${tag} ${href} class="banner-item" style="background: ${b.color || 'var(--oscuro)'}; text-decoration:none;">
                     <span class="badge-anuncio">Anuncio</span>
@@ -261,15 +277,10 @@
                     ${b.imagen ? `<img src="${b.imagen}">` : `<i class="${b.icono || 'fas fa-bolt'}" style="color:white;"></i>`}
                 </${tag}>`;
         });
-
         if(bannerInterval) clearInterval(bannerInterval);
         bannerInterval = setInterval(() => {
             const scrollWidth = container.offsetWidth;
-            if (container.scrollLeft + scrollWidth >= container.scrollWidth) {
-                container.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                container.scrollBy({ left: scrollWidth, behavior: 'smooth' });
-            }
+            if (container.scrollLeft + scrollWidth >= container.scrollWidth) { container.scrollTo({ left: 0, behavior: 'smooth' }); } else { container.scrollBy({ left: scrollWidth, behavior: 'smooth' }); }
         }, 4000);
     });
 
@@ -292,13 +303,21 @@
         container.innerHTML = '';
         const filtered = currentCat === "Todos" ? allProducts : allProducts.filter(p => p.categoria === currentCat);
         
+        // ORDENAR: 1. YaMi Oficial, 2. PRO, 3. Normal
+        filtered.sort((a, b) => {
+            const valA = a.waVendedor === NUMERO_YAMI ? 2 : (allSocios[a.waVendedor] === "pro" ? 1 : 0);
+            const valB = b.waVendedor === NUMERO_YAMI ? 2 : (allSocios[b.waVendedor] === "pro" ? 1 : 0);
+            return valB - valA;
+        });
+
         filtered.forEach(p => {
+            const esYaMi = p.waVendedor === NUMERO_YAMI;
+            const esPro = allSocios[p.waVendedor] === "pro";
             const stockNum = Number(p.stock) || 0;
             const agotado = stockNum <= 0;
             const tienePromo = p.precioOld > p.precio;
             let dcto = tienePromo ? Math.round(((p.precioOld - p.precio) / p.precioOld) * 100) : 0;
             const fotos = p.imagenes && p.imagenes.length > 0 ? p.imagenes : [p.imagen];
-            
             const esCombo = p.nombre.toLowerCase().includes('combo') || p.nombre.toLowerCase().includes('2x1');
             const esRegalo = p.descripcion && p.descripcion.toLowerCase().includes('gratis');
 
@@ -319,25 +338,27 @@
                 </div>`;
 
             container.innerHTML += `
-                <div class="card ${agotado ? 'agotado' : ''}">
-                    ${p.waVendedor ? `<span class="external-badge">EXTERNO</span>` : ''}
+                <div class="card ${agotado ? 'agotado' : ''} ${esYaMi ? 'official-card' : (esPro ? 'pro-card' : '')}">
+                    ${esYaMi ? `<span class="promo-badge" style="background:var(--violeta); color:white; top:5px; left:5px; border-radius:5px;"><i class="fas fa-check-double"></i> OFICIAL</span>` : (esPro ? `<span class="promo-badge" style="background:var(--oro); color:var(--oscuro); top:5px; left:5px; border-radius:5px;"><i class="fas fa-crown"></i> TOP</span>` : '')}
+                    ${p.waVendedor && !esPro && !esYaMi ? `<span class="external-badge">EXTERNO</span>` : ''}
                     ${tienePromo ? `<span class="promo-badge">-${dcto}%</span>` : ''}
-                    <span class="stock-tag" style="${agotado ? 'background:var(--rojo)' : ''}">
+                    <span class="stock-tag" style="${agotado ? 'background:var(--rojo)' : ''}; top: ${(esPro || esYaMi) ? '30px' : '5px'}">
                         ${agotado ? '¡AGOTADO!' : 'Stock: ' + stockNum}
                     </span>
                     ${sliderHtml}
                     <div class="info">
+                        ${esYaMi ? `<div class="badge-official-vendedor"><i class="fas fa-certificate"></i> Tienda Oficial YaMi</div>` : (esPro ? `<div class="badge-pro-vendedor"><i class="fas fa-check-circle"></i> Vendedor Verificado</div>` : '')}
                         <h3 onclick="openProduct('${p.id}')">${p.nombre}</h3>
                         <div class="stars-mini" onclick="openProduct('${p.id}')">
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                            <span>(Opiniones)</span>
+                            <span>(${p.nombreTienda || 'Opiniones'})</span>
                         </div>
                         <div class="price-container">
                             ${tienePromo ? `<span class="old-price">$${Number(p.precioOld).toLocaleString()}</span>` : ''}
                             <span class="price">$${Number(p.precio).toLocaleString()}</span>
                         </div>
                         <button class="btn-card-add" onclick="addToCart('${p.id}')" ${agotado ? 'disabled' : ''}>
-                            AÑADIR +
+                            ${esYaMi ? 'COMPRA OFICIAL ⚡' : (esPro ? 'PEDIR AHORA 🚀' : 'AÑADIR +')}
                         </button>
                     </div>
                 </div>`;
@@ -444,17 +465,12 @@
         const usuarioInput = document.getElementById('review-user');
         const textoInput = document.getElementById('review-text');
         const btn = document.getElementById('btn-send-review');
-        if(!estrellasInput || !usuarioInput.value.trim() || !textoInput.value.trim() || !selectedProdId) { 
-            showToast("Completa todos los campos", "var(--rojo)"); return; 
-        }
+        if(!estrellasInput || !usuarioInput.value.trim() || !textoInput.value.trim() || !selectedProdId) { showToast("Completa todos los campos", "var(--rojo)"); return; }
         btn.disabled = true; btn.innerText = "...";
         try {
             await addDoc(collection(db, "resenas"), {
-                idProducto: selectedProdId, 
-                nombreUsuario: usuarioInput.value.trim(),
-                estrellas: Number(estrellasInput.value), 
-                comentario: textoInput.value.trim(), 
-                fecha: serverTimestamp()
+                idProducto: selectedProdId, nombreUsuario: usuarioInput.value.trim(),
+                estrellas: Number(estrellasInput.value), comentario: textoInput.value.trim(), fecha: serverTimestamp()
             });
             usuarioInput.value = ''; textoInput.value = '';
             document.querySelectorAll('input[name="stars"]').forEach(i => i.checked = false);
