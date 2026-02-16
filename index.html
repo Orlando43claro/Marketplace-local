@@ -142,12 +142,7 @@
 </nav>
 
 <div class="cat-bar" id="cat-bar">
-    <button class="active" onclick="filterCat('Todos', this)">Todos</button>
-    <button onclick="filterCat('Viveres', this)">Precios Bajos</button>
-    <button onclick="filterCat('Aseo', this)">Variedades</button>
-    <button onclick="filterCat('Bebidas', this)">⭐ Populares</button>
-    <button onclick="filterCat('Externo', this)">📦 Externos</button>
-    <button onclick="filterCat('Promociones', this)" style="color:red; font-weight:bold;">🔥 OFERTAS</button>
+    <button class="active" id="btn-todos" onclick="filterCat('Todos', this)">Todos</button>
 </div>
 
 <div class="container">
@@ -155,7 +150,7 @@
         <div class="banner-item" style="background: linear-gradient(135deg, var(--oscuro), var(--naranja));">
             <span class="badge-anuncio">Anuncio</span>
             <div class="banner-text-content">
-                <h2 style="margin:0; font-size: 1.1rem; color: white;">Cargando YaMi...⚡</h2>
+                <h2 style="margin:0; font-size: 1.1rem; color: white;">Cargando YaMi...⚙️</h2>
                 <p style="margin:5px 0 0; font-size: 0.75rem; color: white; opacity: 0.9;">Preparando lo mejor para ti.</p>
             </div>
             <img src="https://i.ibb.co/CRZNPpf/1770824892177.png">
@@ -230,7 +225,21 @@
     let currentCat = "Todos";
     let selectedProdId = null;
 
-    // --- ESCUCHAR BANNERS CON SLIDE AUTOMÁTICO ---
+    // --- CARGAR CATEGORÍAS DINÁMICAS (NUEVO) ---
+    const catBar = document.getElementById('cat-bar');
+    onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snapshot) => {
+        catBar.innerHTML = `<button class="${currentCat === 'Todos' ? 'active' : ''}" id="btn-todos" onclick="filterCat('Todos', this)">Todos</button>`;
+        snapshot.forEach(docSnap => {
+            const cat = docSnap.data().nombre;
+            const btn = document.createElement('button');
+            btn.textContent = cat;
+            if(currentCat === cat) btn.classList.add('active');
+            btn.onclick = function() { filterCat(cat, this); };
+            catBar.appendChild(btn);
+        });
+    });
+
+    // --- ESCUCHAR BANNERS ---
     let bannerInterval;
     onSnapshot(query(collection(db, "banners"), orderBy("orden", "asc")), (snapshot) => {
         const container = document.getElementById('banner-container');
@@ -253,7 +262,6 @@
                 </${tag}>`;
         });
 
-        // Configuración de Slide Automático (cada 4 segundos)
         if(bannerInterval) clearInterval(bannerInterval);
         bannerInterval = setInterval(() => {
             const scrollWidth = container.offsetWidth;
