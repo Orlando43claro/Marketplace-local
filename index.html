@@ -47,8 +47,12 @@
         .card.pro-card { border: 2px solid var(--oro); }
         .card.official-card { border: 2px solid var(--violeta); box-shadow: 0 4px 15px rgba(98, 0, 234, 0.2); }
 
-        .badge-pro-vendedor { background: var(--oro); color: var(--oscuro); font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 5px; text-transform: uppercase; }
+        .badge-pro-vendedor { background: var(--oro); color: var(--oscuro); font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 2px; text-transform: uppercase; }
         .badge-official-vendedor { background: var(--violeta); color: white; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 5px; text-transform: uppercase; }
+
+        /* LINK VER TIENDA */
+        .btn-ver-tienda { text-decoration: none; font-size: 10px; color: var(--azul); font-weight: bold; margin-bottom: 5px; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s; }
+        .btn-ver-tienda:hover { opacity: 0.7; }
 
         /* ETIQUETAS ESPECIALES */
         .promo-badge-combo { position: absolute; top: 35px; right: 5px; background: var(--violeta); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
@@ -347,7 +351,19 @@
                     </span>
                     ${sliderHtml}
                     <div class="info">
-                        ${esYaMi ? `<div class="badge-official-vendedor"><i class="fas fa-certificate"></i> Tienda Oficial YaMi</div>` : (esPro ? `<div class="badge-pro-vendedor"><i class="fas fa-check-circle"></i> Vendedor Verificado</div>` : '')}
+                        ${esYaMi ? `
+                            <div class="badge-official-vendedor"><i class="fas fa-certificate"></i> Tienda Oficial YaMi</div>
+                        ` : (esPro ? `
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="badge-pro-vendedor"><i class="fas fa-check-circle"></i> Vendedor Verificado</div>
+                                <a href="ver-tienda.html?id=${p.waVendedor}" class="btn-ver-tienda"><i class="fas fa-store"></i> VER TIENDA</a>
+                            </div>
+                        ` : `
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <span style="font-size:10px; color:#777; margin-bottom:2px;">Vendedor: ${p.nombreTienda || 'Local'}</span>
+                                <a href="ver-tienda.html?id=${p.waVendedor}" class="btn-ver-tienda"><i class="fas fa-store"></i> VER TIENDA</a>
+                            </div>
+                        `)}
                         <h3 onclick="openProduct('${p.id}')">${p.nombre}</h3>
                         <div class="stars-mini" onclick="openProduct('${p.id}')">
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
@@ -418,7 +434,7 @@
                 <p style="color:#666; font-size:13px; margin-bottom:15px;">${p.descripcion || 'Sin descripción.'}</p>
                 <button class="btn-card-add" style="width:100%; padding:12px; font-size:15px;" 
                     onclick="addToCart('${p.id}'); closeModal();" ${agotado ? 'disabled' : ''}>
-                    ${agotado ? 'AGORTADO' : 'AGREGAR AL PEDIDO'}
+                    ${agotado ? 'AGOTADO' : 'AGREGAR AL PEDIDO'}
                 </button>
             </div>`;
         document.getElementById('product-modal').style.display = 'flex';
