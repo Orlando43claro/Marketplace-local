@@ -10,13 +10,14 @@
         :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --oro: #ffb100; --rojo: #d91e18; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding-top: 85px; overflow-x: hidden; }
 
-        /* HEADER HORIZONTAL */
+        /* HEADER HORIZONTAL ESTÁTICO */
         .store-header { 
             position: fixed; top: 0; left: 0; right: 0; 
             background: var(--oscuro); color: white; 
             height: 70px; display: flex; align-items: center; 
             padding: 0 15px; z-index: 1000; 
             border-bottom: 3px solid var(--naranja); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         .header-content { display: flex; align-items: center; width: 100%; gap: 12px; }
         .back-btn { color: white; font-size: 20px; text-decoration: none; width: 30px; }
@@ -29,37 +30,37 @@
         .container { padding: 10px; max-width: 800px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; }
-        .image-container { height: 130px; background: white; padding: 5px; cursor: pointer; }
+        .image-container { height: 140px; background: white; padding: 5px; cursor: pointer; }
         .image-container img { width: 100%; height: 100%; object-fit: contain; }
         
         .info { padding: 8px; text-align: center; flex-grow: 1; }
-        .info h3 { margin: 0; font-size: 12px; color: var(--oscuro); height: 32px; overflow: hidden; cursor: pointer; }
-        .price { font-size: 15px; font-weight: 800; color: var(--rojo); margin: 5px 0; display: block; }
+        .info h3 { margin: 0; font-size: 12px; color: var(--oscuro); height: 32px; overflow: hidden; cursor: pointer; line-height: 1.3; }
+        .price { font-size: 16px; font-weight: 800; color: var(--rojo); margin: 5px 0; display: block; }
 
-        /* BOTONES EN TARJETA */
-        .card-buttons { display: flex; flex-direction: column; gap: 5px; padding: 0 8px 10px; }
-        .btn-card-add { background: var(--oscuro); color: white; border: none; padding: 8px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
-        .btn-card-wa { background: white; color: var(--verde); border: 1px solid var(--verde); padding: 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        /* BOTÓN ÚNICO EN TARJETA */
+        .card-action { padding: 0 8px 12px; }
+        .btn-add-ask { background: var(--oscuro); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* CARRITO FLOTANTE */
-        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--oscuro); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; z-index: 2000; border: 2px solid var(--naranja); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--oscuro); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; z-index: 2000; border: 2px solid var(--naranja); box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
         #cart-count { position: absolute; top: -5px; right: -5px; background: var(--rojo); color: white; font-size: 11px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
 
-        /* MODALES */
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: white; margin: 10vh auto; padding: 20px; width: 85%; max-width: 450px; border-radius: 20px; position: relative; max-height: 80vh; overflow-y: auto; }
+        /* MODAL DETALLE */
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(2px); }
+        .modal-content { background: white; margin: 8vh auto; padding: 20px; width: 85%; max-width: 450px; border-radius: 20px; position: relative; max-height: 80vh; overflow-y: auto; }
         .close { position: absolute; top: 10px; right: 15px; font-size: 28px; color: #aaa; cursor: pointer; z-index: 10; }
         .carousel { display: flex; overflow-x: auto; snap-type: x mandatory; gap: 10px; margin-bottom: 15px; scrollbar-width: none; border-radius: 10px; }
+        .carousel::-webkit-scrollbar { display: none; }
         .carousel img { width: 100%; flex-shrink: 0; snap-align: start; height: 250px; object-fit: contain; background: #f9f9f9; }
 
-        /* PANEL CARRITO (CORREGIDO TAMAÑO) */
+        /* PANEL CARRITO */
         .cart-panel { display: none; position: fixed; top: 0; right: 0; width: 100%; height: 100%; background: white; z-index: 4000; padding: 20px; box-sizing: border-box; flex-direction: column; }
         .cart-header { display: flex; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; flex-shrink: 0; }
         #cart-items { flex-grow: 1; overflow-y: auto; padding: 10px 0; }
         .cart-footer { border-top: 1px solid #eee; padding-top: 15px; flex-shrink: 0; }
-        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        textarea { width: 100%; height: 60px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; resize: none; }
-        .btn-send-wa { background: var(--verde); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f2f2f2; font-size: 14px; }
+        textarea { width: 100%; height: 70px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; resize: none; box-sizing: border-box; }
+        .btn-send-wa { background: var(--verde); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -82,7 +83,7 @@
 
 <div class="container">
     <div class="grid" id="products-grid"></div>
-    <div id="no-products" style="display:none; text-align: center; padding: 50px 20px; color: #999;"><p>No hay productos disponibles.</p></div>
+    <div id="no-products" style="display:none; text-align: center; padding: 50px 20px; color: #999;"><p>No hay productos publicados.</p></div>
 </div>
 
 <div id="product-modal" class="modal">
@@ -90,7 +91,7 @@
         <span class="close" onclick="closeModal()">&times;</span>
         <div id="carousel" class="carousel"></div>
         <h2 id="modal-name" style="margin:0; font-size:1.2rem;"></h2>
-        <p id="modal-price" style="color:var(--rojo); font-weight:800; font-size:1.3rem; margin:10px 0;"></p>
+        <p id="modal-price" style="color:var(--rojo); font-weight:800; font-size:1.4rem; margin:10px 0;"></p>
         <p id="modal-desc" style="color:#555; font-size:0.9rem; line-height:1.4;"></p>
         <button id="add-to-cart-modal" style="background:var(--oscuro); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer;">AÑADIR AL PEDIDO</button>
     </div>
@@ -98,16 +99,16 @@
 
 <div id="cart-panel" class="cart-panel">
     <div class="cart-header">
-        <i class="fas fa-chevron-left" onclick="toggleCart(false)" style="font-size: 22px; cursor: pointer;"></i>
-        <h2 style="margin: 0 0 0 15px; font-size: 1.2rem;">Mi Pedido</h2>
+        <i class="fas fa-chevron-left" onclick="toggleCart(false)" style="font-size: 24px; cursor: pointer;"></i>
+        <h2 style="margin: 0 0 0 15px; font-size: 1.3rem;">Mi Pedido</h2>
     </div>
     <div id="cart-items"></div>
     <div class="cart-footer">
-        <p style="font-weight: bold; margin: 0 0 5px; font-size: 14px;">Observaciones:</p>
-        <textarea id="order-notes" placeholder="Ej: Talla L, color negro..."></textarea>
-        <div id="cart-total" style="font-size: 20px; font-weight: 900; margin-bottom: 15px; text-align: right;">Total: $0</div>
+        <p style="font-weight: bold; margin: 0; font-size: 14px;">Instrucciones adicionales:</p>
+        <textarea id="order-notes" placeholder="Talla, color, dirección..."></textarea>
+        <div id="cart-total" style="font-size: 22px; font-weight: 900; margin-bottom: 15px; text-align: right; color: var(--oscuro);">Total: $0</div>
         <button class="btn-send-wa" onclick="sendOrder()">
-            <i class="fab fa-whatsapp"></i> ENVIAR PEDIDO A WHATSAPP
+            <i class="fab fa-whatsapp"></i> ENVIAR A WHATSAPP
         </button>
     </div>
 </div>
@@ -156,20 +157,29 @@
             grid.innerHTML = '';
             let prods = [];
             snapshot.forEach(d => prods.push({id: d.id, ...d.data()}));
+            
+            // Ordenamos localmente para evitar error de índice Firebase
             prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
 
+            if(prods.length === 0) {
+                document.getElementById('no-products').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('no-products').style.display = 'none';
             prods.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                // Usamos JSON.stringify con precaución para los atributos onclick
+                const pData = btoa(JSON.stringify(p)); 
                 card.innerHTML = `
-                    <div class="image-container" onclick='showDetail(${JSON.stringify(p)})'><img src="${p.imagen}"></div>
-                    <div class="info" onclick='showDetail(${JSON.stringify(p)})'>
+                    <div class="image-container" onclick="openDetail('${pData}')"><img src="${p.imagen}"></div>
+                    <div class="info" onclick="openDetail('${pData}')">
                         <h3>${p.nombre}</h3>
                         <span class="price">$${Number(p.precio).toLocaleString()}</span>
                     </div>
-                    <div class="card-buttons">
-                        <button class="btn-card-add" onclick='addToCartDirect(${JSON.stringify(p)})'>AÑADIR AL PEDIDO</button>
-                        <button class="btn-card-wa" onclick="askAvailability('${p.nombre}')">¿DISPONIBLE?</button>
+                    <div class="card-action">
+                        <button class="btn-add-ask" onclick="addToCartDirect('${pData}')">Añadir para preguntar</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -177,25 +187,35 @@
         });
     }
 
-    window.showDetail = function(p) {
+    // Funciones Globales para manejo de datos
+    window.openDetail = (encodedData) => {
+        const p = JSON.parse(atob(encodedData));
         currentProduct = p;
         document.getElementById('modal-name').innerText = p.nombre;
         document.getElementById('modal-price').innerText = `$${Number(p.precio).toLocaleString()}`;
-        document.getElementById('modal-desc').innerText = p.descripcion || '';
+        document.getElementById('modal-desc').innerText = p.descripcion || 'Sin descripción disponible.';
+        
         const carousel = document.getElementById('carousel');
         carousel.innerHTML = '';
-        const imgs = p.imagenes && Array.isArray(p.imagenes) ? p.imagenes : [p.imagen];
+        const imgs = (p.imagenes && p.imagenes.length > 0) ? p.imagenes : [p.imagen];
         imgs.forEach(url => carousel.innerHTML += `<img src="${url}">`);
+        
         document.getElementById('product-modal').style.display = 'block';
     }
 
-    window.addToCartDirect = (p) => {
+    window.addToCartDirect = (encodedData) => {
+        const p = JSON.parse(atob(encodedData));
         cart.push(p);
         updateCartUI();
-    }
-
-    window.askAvailability = (name) => {
-        window.open(`https://wa.me/${storeId}?text=Hola, ¿tienes disponible el producto: ${name}?`, '_blank');
+        // Feedback visual simple
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "¡AÑADIDO!";
+        btn.style.background = "#25d366";
+        setTimeout(() => { 
+            btn.innerText = originalText; 
+            btn.style.background = "#232f3e";
+        }, 800);
     }
 
     window.closeModal = () => document.getElementById('product-modal').style.display = 'none';
@@ -213,7 +233,12 @@
         let total = 0;
         cart.forEach((item, i) => {
             total += Number(item.precio);
-            list.innerHTML += `<div class="cart-item"><span>${item.nombre}</span><b>$${Number(item.precio).toLocaleString()} <i class="fas fa-trash" onclick="remove(${i})" style="margin-left:10px; color:red; cursor:pointer"></i></b></div>`;
+            list.innerHTML += `
+                <div class="cart-item">
+                    <span>${item.nombre}</span>
+                    <b>$${Number(item.precio).toLocaleString()} 
+                    <i class="fas fa-trash" onclick="remove(${i})" style="margin-left:12px; color:var(--rojo); cursor:pointer"></i></b>
+                </div>`;
         });
         document.getElementById('cart-total').innerText = `Total: $${total.toLocaleString()}`;
     }
@@ -222,13 +247,16 @@
     window.toggleCart = (s) => document.getElementById('cart-panel').style.display = s ? 'flex' : 'none';
 
     window.sendOrder = () => {
-        if(cart.length === 0) return;
-        let m = `*PEDIDO - ${storeData.nombreTienda}*%0A%0A`;
+        if(cart.length === 0) return alert("El carrito está vacío");
+        let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
         let t = 0;
-        cart.forEach(i => { m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`; t += Number(i.precio); });
+        cart.forEach(i => { 
+            m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`; 
+            t += Number(i.precio); 
+        });
         const n = document.getElementById('order-notes').value;
         if(n) m += `%0A*Nota:* ${n}%0A`;
-        m += `%0A*TOTAL: $${t.toLocaleString()}*`;
+        m += `%0A*TOTAL A PAGAR: $${t.toLocaleString()}*%0A%0A_¿Están disponibles estos productos?_`;
         window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
     }
 </script>
