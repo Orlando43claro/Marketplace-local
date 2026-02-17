@@ -154,19 +154,23 @@
         setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // --- COPIAR LINK ---
-    window.copiarLinkTienda = () => {
-        if(!sesion) return;
-        // Genera el link basado en el dominio actual de GitHub o Local
-        const base = window.location.href.split('vendedor.html')[0]; // Ajusta según el nombre de este archivo
-        const urlFinal = `${base}ver-tienda.html?id=${sesion.celular}`;
-        
-        navigator.clipboard.writeText(urlFinal).then(() => {
-            notify("¡Link de tu tienda copiado!");
-        }).catch(err => {
-            notify("Error al copiar link");
-        });
-    };
+    // --- COPIAR LINK CORREGIDO ---
+window.copiarLinkTienda = () => {
+    if(!sesion) return;
+    
+    // Obtenemos la URL base actual (ej: https://orlando43claro.github.io/expressmarket1/)
+    // Esto quita el nombre del archivo actual (vender.html) para que no se duplique
+    const base = window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1);
+    
+    const urlFinal = `${base}ver-tienda.html?id=${sesion.celular}`;
+    
+    navigator.clipboard.writeText(urlFinal).then(() => {
+        notify("¡Link de tu tienda copiado!");
+    }).catch(err => {
+        notify("Error al copiar link");
+    });
+};
+
 
     // --- SESIÓN ---
     window.registrarSocio = async () => {
