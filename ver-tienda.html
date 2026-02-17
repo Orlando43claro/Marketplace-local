@@ -8,59 +8,67 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --oro: #ffb100; --rojo: #d91e18; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding-top: 85px; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding-top: 85px; }
 
-        /* HEADER HORIZONTAL ESTÁTICO */
+        /* HEADER HORIZONTAL EST脕TICO */
         .store-header { 
             position: fixed; top: 0; left: 0; right: 0; 
             background: var(--oscuro); color: white; 
             height: 70px; display: flex; align-items: center; 
             padding: 0 15px; z-index: 1000; 
             border-bottom: 3px solid var(--naranja); 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
         }
         .header-content { display: flex; align-items: center; width: 100%; gap: 12px; }
-        .back-btn { color: white; font-size: 20px; text-decoration: none; width: 30px; }
-        .store-logo { width: 45px; height: 45px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--naranja); flex-shrink: 0; overflow: hidden; }
-        .store-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .store-name { margin: 0; font-size: 1.1rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .badge-mini { font-size: 9px; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; font-weight: 800; background: var(--oro); color: var(--oscuro); }
-
-        /* GRID PRODUCTOS */
-        .container { padding: 10px; max-width: 800px; margin: auto; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; }
-        .image-container { height: 140px; background: white; padding: 5px; cursor: pointer; }
-        .image-container img { width: 100%; height: 100%; object-fit: contain; }
+        .back-btn { color: white; font-size: 20px; text-decoration: none; width: 35px; }
         
-        .info { padding: 8px; text-align: center; flex-grow: 1; }
-        .info h3 { margin: 0; font-size: 12px; color: var(--oscuro); height: 32px; overflow: hidden; cursor: pointer; line-height: 1.3; }
-        .price { font-size: 16px; font-weight: 800; color: var(--rojo); margin: 5px 0; display: block; }
+        .store-logo { 
+            width: 45px; height: 45px; background: white; 
+            border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; font-size: 22px; color: var(--naranja); 
+            border: 2px solid var(--naranja); flex-shrink: 0;
+            overflow: hidden;
+        }
+        .store-logo img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* BOTÓN ÚNICO EN TARJETA */
-        .card-action { padding: 0 8px 12px; }
-        .btn-add-ask { background: var(--oscuro); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+        .store-info-text { flex-grow: 1; overflow: hidden; }
+        .store-name { margin: 0; font-size: 1.1rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .badge-mini { font-size: 9px; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; font-weight: 800; display: inline-block; margin-top: 2px; }
+        .badge-pro { background: var(--oro); color: var(--oscuro); }
+        .badge-normal { background: #445566; color: white; }
 
         /* CARRITO FLOTANTE */
-        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--oscuro); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; z-index: 2000; border: 2px solid var(--naranja); box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
+        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--oscuro); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 2000; cursor: pointer; border: 2px solid var(--naranja); }
         #cart-count { position: absolute; top: -5px; right: -5px; background: var(--rojo); color: white; font-size: 11px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
 
+        /* GRID PRODUCTOS */
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid #eee; cursor: pointer; transition: 0.2s; }
+        .card:active { transform: scale(0.97); }
+        .image-container { height: 140px; background: white; padding: 5px; }
+        .image-container img { width: 100%; height: 100%; object-fit: contain; }
+        .info { padding: 10px; text-align: center; }
+        .info h3 { margin: 0; font-size: 12px; color: var(--oscuro); height: 32px; overflow: hidden; }
+        .price { font-size: 15px; font-weight: 800; color: var(--rojo); margin: 5px 0; display: block; }
+
         /* MODAL DETALLE */
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(2px); }
-        .modal-content { background: white; margin: 8vh auto; padding: 20px; width: 85%; max-width: 450px; border-radius: 20px; position: relative; max-height: 80vh; overflow-y: auto; }
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 10vh auto; padding: 20px; width: 85%; max-width: 450px; border-radius: 20px; position: relative; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .close { position: absolute; top: 10px; right: 15px; font-size: 28px; color: #aaa; cursor: pointer; z-index: 10; }
+
+        /* CARRUSEL MULTIFOTO */
         .carousel { display: flex; overflow-x: auto; snap-type: x mandatory; gap: 10px; margin-bottom: 15px; scrollbar-width: none; border-radius: 10px; }
         .carousel::-webkit-scrollbar { display: none; }
         .carousel img { width: 100%; flex-shrink: 0; snap-align: start; height: 250px; object-fit: contain; background: #f9f9f9; }
 
         /* PANEL CARRITO */
-        .cart-panel { display: none; position: fixed; top: 0; right: 0; width: 100%; height: 100%; background: white; z-index: 4000; padding: 20px; box-sizing: border-box; flex-direction: column; }
-        .cart-header { display: flex; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; flex-shrink: 0; }
-        #cart-items { flex-grow: 1; overflow-y: auto; padding: 10px 0; }
-        .cart-footer { border-top: 1px solid #eee; padding-top: 15px; flex-shrink: 0; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f2f2f2; font-size: 14px; }
-        textarea { width: 100%; height: 70px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; resize: none; box-sizing: border-box; }
-        .btn-send-wa { background: var(--verde); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .cart-panel { display: none; position: fixed; top: 0; right: 0; width: 100%; height: 100%; background: white; z-index: 4000; padding: 20px; flex-direction: column; }
+        .cart-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        textarea { width: 100%; height: 80px; margin: 15px 0; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; resize: none; }
+        .btn-wa { background: var(--verde); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -68,7 +76,9 @@
 <div class="store-header">
     <div class="header-content">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <div class="store-logo" id="store-logo-container"><i class="fas fa-store"></i></div>
+        <div class="store-logo" id="store-logo-container">
+            <i class="fas fa-store"></i>
+        </div>
         <div class="store-info-text">
             <h1 class="store-name" id="display-name">Cargando...</h1>
             <div id="display-badge"></div>
@@ -76,46 +86,50 @@
     </div>
 </div>
 
-<div class="cart-float" onclick="toggleCart(true)">
+<div class="cart-float" id="btn-carro" onclick="toggleCart(true)">
     <i class="fas fa-shopping-basket"></i>
     <span id="cart-count">0</span>
 </div>
 
 <div class="container">
+    <h2 style="font-size: 15px; font-weight: 800; color: var(--oscuro); margin-bottom: 15px;">PRODUCTOS DISPONIBLES</h2>
     <div class="grid" id="products-grid"></div>
-    <div id="no-products" style="display:none; text-align: center; padding: 50px 20px; color: #999;"><p>No hay productos publicados.</p></div>
+    <div id="no-products" style="display:none; text-align: center; padding: 50px 20px; color: #999;">
+        <i class="fas fa-box-open" style="font-size: 40px; margin-bottom: 10px;"></i>
+        <p>No hay productos disponibles.</p>
+    </div>
 </div>
 
 <div id="product-modal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <div id="carousel" class="carousel"></div>
-        <h2 id="modal-name" style="margin:0; font-size:1.2rem;"></h2>
-        <p id="modal-price" style="color:var(--rojo); font-weight:800; font-size:1.4rem; margin:10px 0;"></p>
-        <p id="modal-desc" style="color:#555; font-size:0.9rem; line-height:1.4;"></p>
-        <button id="add-to-cart-modal" style="background:var(--oscuro); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer;">AÑADIR PARA PREGUNTAR</button>
+        <h2 id="modal-name" style="margin: 0; font-size: 1.3rem;"></h2>
+        <p id="modal-price" style="color: var(--rojo); font-weight: 800; font-size: 1.4rem; margin: 10px 0;"></p>
+        <p id="modal-desc" style="color: #555; font-size: 0.9rem; line-height: 1.4; max-height: 100px; overflow-y: auto;"></p>
+        <button id="add-to-cart-btn" style="background: var(--oscuro); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer;">A脩ADIR AL PEDIDO</button>
     </div>
 </div>
 
 <div id="cart-panel" class="cart-panel">
-    <div class="cart-header">
+    <div style="display: flex; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px;">
         <i class="fas fa-chevron-left" onclick="toggleCart(false)" style="font-size: 24px; cursor: pointer;"></i>
-        <h2 style="margin: 0 0 0 15px; font-size: 1.3rem;">Mi Pedido</h2>
+        <h2 style="margin: 0 0 0 15px;">Mi Carrito</h2>
     </div>
-    <div id="cart-items"></div>
-    <div class="cart-footer">
-        <p style="font-weight: bold; margin: 0; font-size: 14px;">Preguntar sobre el producto:</p>
-        <textarea id="order-notes" placeholder="Se encuentra disponible..."></textarea>
-        <div id="cart-total" style="font-size: 22px; font-weight: 900; margin-bottom: 15px; text-align: right; color: var(--oscuro);">Total: $0</div>
-        <button class="btn-send-wa" onclick="sendOrder()">
-            <i class="fab fa-whatsapp"></i> ENVIAR A WHATSAPP
+    <div id="cart-items" style="flex-grow: 1; overflow-y: auto; padding-top: 10px;"></div>
+    <div style="padding-top: 15px; border-top: 2px solid #eee;">
+        <p style="font-weight: bold; margin-bottom: 5px;">驴Alguna instrucci贸n extra?</p>
+        <textarea id="order-notes" placeholder="Ej: Talla M, sin picante, entrega en porter铆a..."></textarea>
+        <div id="cart-total" style="font-size: 22px; font-weight: 900; margin-bottom: 15px; text-align: right; color: var(--oscuro);"></div>
+        <button class="btn-wa" onclick="sendOrder()">
+            <i class="fab fa-whatsapp"></i> ENVIAR PEDIDO
         </button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -128,6 +142,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
     const urlParams = new URLSearchParams(window.location.search);
     const storeId = urlParams.get('id');
 
@@ -135,9 +150,12 @@
     let cart = [];
     let currentProduct = null;
 
-    if (!storeId) window.location.href = 'index.html';
-    loadStoreInfo();
-    loadStoreProducts();
+    if (!storeId) {
+        window.location.href = 'index.html';
+    } else {
+        loadStoreInfo();
+        loadStoreProducts();
+    }
 
     async function loadStoreInfo() {
         const q = query(collection(db, "socios"), where("celular", "==", storeId));
@@ -145,41 +163,37 @@
         snap.forEach(doc => {
             storeData = doc.data();
             document.getElementById('display-name').innerText = storeData.nombreTienda;
-            if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
-            document.getElementById('display-badge').innerHTML = storeData.plan === 'pro' ? '<span class="badge-mini">VERIFICADO 👑</span>' : '';
+            
+            // Si el socio tiene logo (asumiendo campo 'fotoPerfil')
+            if(storeData.fotoPerfil) {
+                document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
+            }
+
+            const badge = document.getElementById('display-badge');
+            badge.innerHTML = storeData.plan === 'pro' ? 
+                '<span class="badge-mini badge-pro"><i class="fas fa-crown"></i> Verificado</span>' : 
+                '<span class="badge-mini badge-normal">Socio YaMi</span>';
         });
     }
 
     function loadStoreProducts() {
-        const q = query(collection(db, "productos"), where("waVendedor", "==", storeId));
+        const q = query(collection(db, "productos"), where("waVendedor", "==", storeId), orderBy("fecha", "desc"));
         onSnapshot(q, (snapshot) => {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
-            let prods = [];
-            snapshot.forEach(d => prods.push({id: d.id, ...d.data()}));
-            
-            // Ordenamos localmente para evitar error de índice Firebase
-            prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
-
-            if(prods.length === 0) {
-                document.getElementById('no-products').style.display = 'block';
-                return;
-            }
-
+            if (snapshot.empty) { document.getElementById('no-products').style.display = 'block'; return; }
             document.getElementById('no-products').style.display = 'none';
-            prods.forEach(p => {
+
+            snapshot.forEach(docSnap => {
+                const p = { id: docSnap.id, ...docSnap.data() };
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Usamos JSON.stringify con precaución para los atributos onclick
-                const pData = btoa(JSON.stringify(p)); 
+                card.onclick = () => showDetail(p);
                 card.innerHTML = `
-                    <div class="image-container" onclick="openDetail('${pData}')"><img src="${p.imagen}"></div>
-                    <div class="info" onclick="openDetail('${pData}')">
+                    <div class="image-container"><img src="${p.imagen}" loading="lazy"></div>
+                    <div class="info">
                         <h3>${p.nombre}</h3>
                         <span class="price">$${Number(p.precio).toLocaleString()}</span>
-                    </div>
-                    <div class="card-action">
-                        <button class="btn-add-ask" onclick="addToCartDirect('${pData}')">Añadir para preguntar</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -187,78 +201,70 @@
         });
     }
 
-    // Funciones Globales para manejo de datos
-    window.openDetail = (encodedData) => {
-        const p = JSON.parse(atob(encodedData));
+    window.showDetail = function(p) {
         currentProduct = p;
         document.getElementById('modal-name').innerText = p.nombre;
         document.getElementById('modal-price').innerText = `$${Number(p.precio).toLocaleString()}`;
-        document.getElementById('modal-desc').innerText = p.descripcion || 'Sin descripción disponible.';
+        document.getElementById('modal-desc').innerText = p.descripcion || 'Sin descripci贸n.';
         
         const carousel = document.getElementById('carousel');
         carousel.innerHTML = '';
-        const imgs = (p.imagenes && p.imagenes.length > 0) ? p.imagenes : [p.imagen];
-        imgs.forEach(url => carousel.innerHTML += `<img src="${url}">`);
-        
-        document.getElementById('product-modal').style.display = 'block';
-    }
+        const imgs = p.imagenes && Array.isArray(p.imagenes) ? p.imagenes : [p.imagen];
+        imgs.forEach(url => { carousel.innerHTML += `<img src="${url}">`; });
 
-    window.addToCartDirect = (encodedData) => {
-        const p = JSON.parse(atob(encodedData));
-        cart.push(p);
-        updateCartUI();
-        // Feedback visual simple
-        const btn = event.target;
-        const originalText = btn.innerText;
-        btn.innerText = "¡AÑADIDO!";
-        btn.style.background = "#25d366";
-        setTimeout(() => { 
-            btn.innerText = originalText; 
-            btn.style.background = "#232f3e";
-        }, 800);
+        document.getElementById('product-modal').style.display = 'block';
     }
 
     window.closeModal = () => document.getElementById('product-modal').style.display = 'none';
 
-    document.getElementById('add-to-cart-modal').onclick = () => {
-        cart.push(currentProduct);
+    document.getElementById('add-to-cart-btn').onclick = () => {
+        cart.push({...currentProduct});
         updateCartUI();
         closeModal();
     };
 
     function updateCartUI() {
         document.getElementById('cart-count').innerText = cart.length;
-        const list = document.getElementById('cart-items');
-        list.innerHTML = '';
+        const itemsList = document.getElementById('cart-items');
+        itemsList.innerHTML = '';
         let total = 0;
-        cart.forEach((item, i) => {
+        cart.forEach((item, index) => {
             total += Number(item.precio);
-            list.innerHTML += `
+            itemsList.innerHTML += `
                 <div class="cart-item">
                     <span>${item.nombre}</span>
-                    <b>$${Number(item.precio).toLocaleString()} 
-                    <i class="fas fa-trash" onclick="remove(${i})" style="margin-left:12px; color:var(--rojo); cursor:pointer"></i></b>
-                </div>`;
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <strong>$${Number(item.precio).toLocaleString()}</strong>
+                        <i class="fas fa-times-circle" onclick="removeFromCart(${index})" style="color:var(--rojo); cursor:pointer"></i>
+                    </div>
+                </div>
+            `;
         });
         document.getElementById('cart-total').innerText = `Total: $${total.toLocaleString()}`;
     }
 
-    window.remove = (i) => { cart.splice(i,1); updateCartUI(); }
-    window.toggleCart = (s) => document.getElementById('cart-panel').style.display = s ? 'flex' : 'none';
+    window.removeFromCart = (index) => {
+        cart.splice(index, 1);
+        updateCartUI();
+    };
+
+    window.toggleCart = (show) => {
+        document.getElementById('cart-panel').style.display = show ? 'flex' : 'none';
+    };
 
     window.sendOrder = () => {
-        if(cart.length === 0) return alert("El carrito está vacío");
-        let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
-        let t = 0;
-        cart.forEach(i => { 
-            m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`; 
-            t += Number(i.precio); 
+        if (cart.length === 0) return alert("Tu carrito est谩 vac铆o");
+        let msg = `*馃洅 NUEVO PEDIDO - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
+        let total = 0;
+        cart.forEach((item, i) => {
+            msg += `鈥� ${item.nombre} ($${Number(item.precio).toLocaleString()})%0A`;
+            total += Number(item.precio);
         });
-        const n = document.getElementById('order-notes').value;
-        if(n) m += `%0A*Nota:* ${n}%0A`;
-        m += `%0A*TOTAL A PAGAR: $${t.toLocaleString()}*%0A%0A_¿Están disponibles estos productos?_`;
-        window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
-    }
+        const notes = document.getElementById('order-notes').value;
+        if(notes) msg += `%0A*Nota:* ${notes}%0A`;
+        msg += `%0A*TOTAL: $${total.toLocaleString()}*%0A%0A_Enviado desde YaMi_`;
+        window.open(`https://wa.me/${storeId}?text=${msg}`, '_blank');
+    };
 </script>
 </body>
 </html>
