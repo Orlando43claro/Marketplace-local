@@ -22,6 +22,11 @@
         label { font-size: 10px; font-weight: 800; color: #94a3b8; display: block; margin-top: 10px; margin-left: 5px; text-transform: uppercase; }
         input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 12px; border: 1.5px solid #edf2f7; border-radius: 12px; background: #f8fafc; font-size: 14px; outline: none; }
 
+        /* Selector de País */
+        .phone-group { display: flex; gap: 8px; margin: 5px 0 12px; }
+        .country-select { width: 95px !important; margin: 0 !important; padding: 12px 5px !important; flex-shrink: 0; }
+        .phone-input { flex: 1; margin: 0 !important; }
+
         .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 13px; }
         .btn-naranja { background: var(--naranja); color: white; box-shadow: 0 4px 15px rgba(255,107,0,0.2); }
         .btn-logout { background: #fee2e2; color: var(--rojo); padding: 8px 12px; width: auto; font-size: 10px; font-weight: 800; border-radius: 10px; border: none; }
@@ -43,7 +48,7 @@
         .bloqueo-pro { background: #fff5eb; border: 2px solid var(--naranja); padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 15px; }
         
         /* ESTADO DESHABILITADO FUERTE */
-        .disabled-action { opacity: 0.1 !important; pointer-events: none !important; filter: grayscale(1); }
+        .disabled-action { opacity: 0.2 !important; pointer-events: none !important; filter: grayscale(1); }
         .form-locked { opacity: 0.4; pointer-events: none; }
 
         .prod-card { background: white; padding: 10px; border-radius: 18px; margin-top: 10px; display: flex; gap: 12px; align-items: center; border: 1px solid #eee; }
@@ -60,10 +65,9 @@
     <div class="modal-card">
         <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-            <p><b>📸 Fotos Perfectas:</b> Sube imágenes <b>CUADRADAS</b>. Esto garantiza que tu catálogo se vea organizado y profesional.</p>
-            <p><b>🔗 Enlace Directo:</b> En ImgBB usa la opción "Enlace directo" para que la foto cargue instantáneamente.</p>
-            <p><b>⚠️ Bloqueo de Seguridad:</b> El Plan Gratis permite <b>3 publicaciones</b>. Al llegar al límite, las opciones de <u>editar y borrar</u> se bloquean para proteger la integridad del sistema verificado.</p>
-            <p><b>👑 Socio PRO:</b> Ser PRO te permite publicaciones ilimitadas y soporte prioritario para tu tienda.</p>
+            <p><b>📸 Fotos:</b> Usa imágenes <b>CUADRADAS</b> para mejor orden.</p>
+            <p><b>⚠️ Límite:</b> El Plan Gratis permite hasta <b>4 publicaciones</b>.</p>
+            <p><b>💎 Socio PRO:</b> Publicaciones ilimitadas y sello verificado.</p>
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
     </div>
@@ -72,7 +76,7 @@
 <div id="confirm-del-modal" class="modal-confirm">
     <div class="modal-card">
         <i class="fas fa-trash-alt" style="font-size: 40px; color: var(--rojo); margin-bottom: 10px;"></i>
-        <h3>¿Eliminar definitivamente?</h3>
+        <h3>¿Eliminar producto?</h3>
         <button class="btn btn-naranja" id="confirm-yes" style="background: var(--rojo); margin-bottom: 10px;">BORRAR AHORA</button>
         <button class="btn" style="background: var(--gris); color: var(--oscuro); padding: 10px;" onclick="cerrarModalDel()">CANCELAR</button>
     </div>
@@ -82,7 +86,17 @@
     <div class="card">
         <div class="logo-container"><div class="yami-icon"><i class="fas fa-bolt"></i></div><h1 style="margin:5px 0; font-size:24px;">YaMi Socios</h1></div>
         <h2>Acceso Vendedor</h2>
-        <label>WhatsApp</label><input type="number" id="log-wa" placeholder="57315...">
+        <label>WhatsApp</label>
+        <div class="phone-group">
+            <select id="log-country" class="country-select">
+                <option value="57" selected>🇨🇴 +57</option>
+                <option value="58">🇻🇪 +58</option>
+                <option value="51">🇵🇪 +51</option>
+                <option value="52">🇲🇽 +52</option>
+                <option value="1">🇺🇸 +1</option>
+            </select>
+            <input type="number" id="log-wa" class="phone-input" placeholder="315...">
+        </div>
         <label>Código</label><input type="password" id="log-code" maxlength="4">
         <button class="btn btn-naranja" onclick="login()">ENTRAR</button>
         <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-register')">Registrar Nueva Tienda</button>
@@ -98,7 +112,17 @@
             <input type="file" id="reg-foto-input" accept="image/*" style="display:none;">
         </div>
         <label>Nombre Tienda</label><input type="text" id="reg-tienda">
-        <label>WhatsApp</label><input type="number" id="reg-wa">
+        <label>WhatsApp</label>
+        <div class="phone-group">
+            <select id="reg-country" class="country-select">
+                <option value="57" selected>🇨🇴 +57</option>
+                <option value="58">🇻🇪 +58</option>
+                <option value="51">🇵🇪 +51</option>
+                <option value="52">🇲🇽 +52</option>
+                <option value="1">🇺🇸 +1</option>
+            </select>
+            <input type="number" id="reg-wa" class="phone-input" placeholder="315...">
+        </div>
         <label>Código (4 dígitos)</label><input type="password" id="reg-code" maxlength="4">
         <button class="btn btn-naranja" onclick="registrarSocio()">CREAR TIENDA</button>
         <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-login')">Regresar al Login</button>
@@ -129,10 +153,10 @@
     </div>
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
-        <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">CUENTA BLOQUEADA (3/3)</p>
-        <p style="font-size: 10px; color: #666; margin: 5px 0 10px;">Llegaste al límite. Suscríbete a PRO para habilitar el panel de gestión.</p>
-        <button class="btn btn-naranja" style="padding: 10px; font-size: 11px; background: var(--verde);" onclick="window.open('https://wa.me/573155445183?text=Hola,%20alcancé%20mi%20límite%20y%20necesito%20el%20acceso%20PRO')">
-            ACTIVAR VERIFICACIÓN PRO
+        <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">⚠️ LÍMITE ALCANZADO (4/4)</p>
+        <p style="font-size: 10px; color: #666; margin: 5px 0 10px;">Pásate a PRO para agregar más productos y editar.</p>
+        <button class="btn btn-naranja" style="padding: 10px; font-size: 11px; background: var(--verde);" onclick="window.open('https://wa.me/573155445183?text=Hola,%20alcancé%20mi%20límite%20de%204%20productos')">
+            ACTIVAR PLAN PRO
         </button>
     </div>
 
@@ -176,6 +200,7 @@
     let fotoPerfilOptimizada = "";
     let esPRO = false;
     let totalProductos = 0;
+    const LIMITE_GRATIS = 4;
 
     window.cerrarInstrucciones = () => { document.getElementById('modal-instrucciones').style.display = 'none'; localStorage.setItem('guiaLeida', 'true'); };
 
@@ -211,23 +236,29 @@
 
     window.registrarSocio = async () => {
         const t = document.getElementById('reg-tienda').value.trim();
-        const w = document.getElementById('reg-wa').value.trim();
+        const country = document.getElementById('reg-country').value;
+        const wa = document.getElementById('reg-wa').value.trim();
         const c = document.getElementById('reg-code').value.trim();
-        if(!t || !w || !c) return notify("Faltan datos");
-        await addDoc(collection(db, "socios"), { nombreTienda: t, celular: w, codigo: c, plan: "gratis", fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp() });
-        sesion = { celular: w, tienda: t };
+        if(!t || !wa || !c) return notify("Faltan datos");
+        
+        const fullWa = country + wa;
+        await addDoc(collection(db, "socios"), { nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp() });
+        sesion = { celular: fullWa, tienda: t };
         localStorage.setItem('vendedorActual', JSON.stringify(sesion));
         initPanel(true);
     };
 
     window.login = async () => {
-        const w = document.getElementById('log-wa').value.trim();
+        const country = document.getElementById('log-country').value;
+        const wa = document.getElementById('log-wa').value.trim();
         const c = document.getElementById('log-code').value.trim();
-        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", w)));
+        const fullWa = country + wa;
+        
+        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", fullWa)));
         let user = null;
         snap.forEach(d => { if(d.data().codigo == c) user = d.data(); });
         if(user) {
-            sesion = { celular: w, tienda: user.nombreTienda };
+            sesion = { celular: fullWa, tienda: user.nombreTienda };
             localStorage.setItem('vendedorActual', JSON.stringify(sesion));
             initPanel();
         } else notify("Error de acceso");
@@ -247,17 +278,18 @@
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
+                esPRO = (d.plan === "pro");
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
-                esPRO = (d.plan === "pro");
+                
                 const badge = document.getElementById('plan-badge');
                 const verify = document.getElementById('header-verify');
                 if(esPRO) {
-                    badge.innerHTML = `<i class="fas fa-crown"></i> PRO`;
+                    badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
                     badge.className = "badge-plan pro-tag";
                     verify.style.display = "inline-block";
                 } else {
-                    badge.innerText = `Gratis (${totalProductos}/3)`;
+                    badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`;
                     badge.className = "badge-plan gratis-tag";
                     verify.style.display = "none";
                 }
@@ -272,35 +304,31 @@
         });
     }
 
-    // BLOQUEO REAL Y VISUAL
+    // BLOQUEO CORREGIDO
     function bloquearSegunPlan() {
-        const estaBloqueado = (!esPRO && totalProductos >= 3);
+        const estaBloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS);
         const formCard = document.getElementById('form-card');
         const msg = document.getElementById('mensaje-limite');
-        const lista = document.getElementById('lista-productos');
+        const btnMain = document.getElementById('btn-main');
 
         if(estaBloqueado) {
             msg.style.display = 'block';
             formCard.classList.add('form-locked');
-            document.getElementById('btn-main').disabled = true;
-            // Bloqueamos los botones de la lista
-            lista.querySelectorAll('button').forEach(btn => btn.classList.add('disabled-action'));
+            btnMain.disabled = true;
+            btnMain.style.background = "#ccc";
+            btnMain.innerText = "LÍMITE ALCANZADO";
         } else {
             msg.style.display = 'none';
             formCard.classList.remove('form-locked');
-            document.getElementById('btn-main').disabled = false;
-            lista.querySelectorAll('button').forEach(btn => btn.classList.remove('disabled-action'));
+            btnMain.disabled = false;
+            btnMain.style.background = "var(--naranja)";
+            btnMain.innerText = document.getElementById('edit-id').value ? "GUARDAR CAMBIOS" : "GUARDAR PRODUCTO";
         }
     }
 
     window.guardarProducto = async () => {
         const idEdit = document.getElementById('edit-id').value;
-        
-        // Bloqueo total si intenta guardar siendo gratis y con límite
-        if(!esPRO && totalProductos >= 3 && !idEdit) {
-            notify("Acceso bloqueado: Pásate a PRO");
-            return;
-        }
+        if(!esPRO && totalProductos >= LIMITE_GRATIS && !idEdit) return notify("Bloqueado: Pásate a PRO");
 
         const url = document.getElementById('p-url').value.trim();
         if(!url) return notify("Falta link de foto");
@@ -316,12 +344,9 @@
             fecha: serverTimestamp()
         };
 
-        if(idEdit) {
-            if(!esPRO && totalProductos >= 3) return notify("Bloqueado: Pásate a PRO");
-            await updateDoc(doc(db, "productos", idEdit), datos);
-        } else {
-            await addDoc(collection(db, "productos"), datos);
-        }
+        if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
+        else await addDoc(collection(db, "productos"), datos);
+        
         notify("Operación exitosa");
         resetForm();
     };
@@ -329,9 +354,11 @@
     function renderInventario(snap) {
         const lista = document.getElementById('lista-productos');
         lista.innerHTML = '';
+        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS);
+        
         snap.forEach(d => {
             const p = d.data();
-            const claseBloqueo = (!esPRO && totalProductos >= 3) ? 'disabled-action' : '';
+            const claseBloqueo = bloqueado ? 'disabled-action' : '';
             lista.innerHTML += `
                 <div class="prod-card">
                     <img src="${p.imagen}">
@@ -339,14 +366,14 @@
                         <b style="font-size:12px;">${p.nombre}</b><br>
                         <small style="color:var(--naranja); font-weight:800;">$${p.precio.toLocaleString()}</small>
                     </div>
-                    <button class="${claseBloqueo}" onclick="prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagenes.join(',')}', '${p.categoria}')" style="border:none; background:none; color:var(--azul);"><i class="fas fa-edit"></i></button>
-                    <button class="${claseBloqueo}" onclick="abrirModalDel('${d.id}')" style="border:none; background:none; color:var(--rojo);"><i class="fas fa-trash"></i></button>
+                    <button class="${claseBloqueo}" onclick="prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagenes.join(',')}', '${p.categoria}')" style="border:none; background:none; color:var(--azul); padding:10px;"><i class="fas fa-edit"></i></button>
+                    <button class="${claseBloqueo}" onclick="abrirModalDel('${d.id}')" style="border:none; background:none; color:var(--rojo); padding:10px;"><i class="fas fa-trash"></i></button>
                 </div>`;
         });
     }
 
     window.prepararEdit = (id, n, p, s, d, imgs, cat) => {
-        if(!esPRO && totalProductos >= 3) return notify("Acceso bloqueado");
+        if(!esPRO && totalProductos >= LIMITE_GRATIS) return notify("Bloqueado: Pásate a PRO");
         document.getElementById('edit-id').value = id;
         document.getElementById('p-nombre').value = n;
         document.getElementById('p-precio').value = p;
@@ -360,7 +387,7 @@
     };
 
     window.abrirModalDel = (id) => { 
-        if(!esPRO && totalProductos >= 3) return notify("Acceso bloqueado");
+        if(!esPRO && totalProductos >= LIMITE_GRATIS) return notify("Bloqueado: Pásate a PRO");
         idParaBorrar = id; 
         document.getElementById('confirm-del-modal').style.display = 'flex'; 
     };
