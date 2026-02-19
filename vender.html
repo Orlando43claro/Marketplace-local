@@ -62,6 +62,15 @@
 
 <div id="toast"></div>
 
+<div id="confirm-del-modal" class="modal-confirm">
+    <div class="modal-card">
+        <i class="fas fa-trash-alt" style="font-size: 40px; color: var(--rojo); margin-bottom: 10px;"></i>
+        <h3>¿Eliminar producto?</h3>
+        <button class="btn btn-naranja" id="confirm-yes" style="background: var(--rojo); margin-bottom: 10px;">BORRAR AHORA</button>
+        <button class="btn" style="background: var(--gris); color: var(--oscuro); padding: 10px;" onclick="cerrarModalDel()">CANCELAR</button>
+    </div>
+</div>
+
 <div id="view-login" class="view">
     <div class="card">
         <div class="logo-container"><div class="yami-icon"><i class="fas fa-bolt"></i></div><h1 style="margin:5px 0; font-size:24px;">YaMi Socios</h1></div>
@@ -70,11 +79,36 @@
         <div class="phone-group">
             <select id="log-country" class="country-select">
                 <option value="57" selected>🇨🇴 +57</option>
+                <option value="58">🇻🇪 +58</option>
+                <option value="51">🇵🇪 +51</option>
             </select>
             <input type="number" id="log-wa" class="phone-input" placeholder="315...">
         </div>
         <label>Código</label><input type="password" id="log-code" maxlength="4">
         <button class="btn btn-naranja" onclick="login()">ENTRAR</button>
+        <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-register')">Registrar Nueva Tienda</button>
+    </div>
+</div>
+
+<div id="view-register" class="view">
+    <div class="card">
+        <h2>Nuevo Registro</h2>
+        <div class="profile-upload" style="position:relative; width:85px; margin:auto;">
+            <div class="profile-preview" id="reg-preview-box"><i class="fas fa-store" style="font-size: 25px; color: #ccc;"></i></div>
+            <label for="reg-foto-input" class="edit-icon"><i class="fas fa-camera"></i></label>
+            <input type="file" id="reg-foto-input" accept="image/*" style="display:none;">
+        </div>
+        <label>Nombre Tienda</label><input type="text" id="reg-tienda">
+        <label>WhatsApp</label>
+        <div class="phone-group">
+            <select id="reg-country" class="country-select">
+                <option value="57" selected>🇨🇴 +57</option>
+            </select>
+            <input type="number" id="reg-wa" class="phone-input" placeholder="315...">
+        </div>
+        <label>Código (4 dígitos)</label><input type="password" id="reg-code" maxlength="4">
+        <button class="btn btn-naranja" onclick="registrarSocio()">CREAR TIENDA</button>
+        <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-login')">Regresar al Login</button>
     </div>
 </div>
 
@@ -99,6 +133,16 @@
         </button>
     </div>
 
+    <div id="stats-pro" class="stats-container">
+        <div class="stat-box"><span>Visitas</span><span id="stat-visitas">0</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-box"><span>Interesados</span><span id="stat-clics">0</span></div>
+    </div>
+
+    <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
+        <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">⚠️ LÍMITE ALCANZADO (4/4)</p>
+    </div>
+
     <div class="card" id="form-card">
         <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
@@ -109,7 +153,7 @@
         </div>
         <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
         <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
-        <label>Link Foto (ImgBB)</label><input type="text" id="p-url">
+        <label>Link Foto (ImgBB)</label><input type="text" id="p-url" placeholder="Pega el enlace directo aquí">
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
     </div>
 
@@ -132,11 +176,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
+    let idParaBorrar = null;
+    let fotoPerfilOptimizada = "";
+    let esPRO = false;
+    let totalProductos = 0;
+    const LIMITE_GRATIS = 4;
 
-    // --- FUNCIÓN COPIAR LINK CORTO (RESTAURADA) ---
+    // --- FUNCIÓN COPIAR LINK CORTO (INTEGRADA) ---
     window.copiarLinkTienda = async () => {
         const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
-        notify("⏳ Acortando...");
+        notify("⏳ Generando link...");
         try {
             const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
             const shortUrl = await res.text();
@@ -144,35 +193,58 @@
             notify("✅ Link corto copiado!");
         } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
-            notify("✅ Link copiado");
+            notify("✅ Link original copiado");
         }
     };
 
-    window.guardarProducto = async () => {
-        const idEdit = document.getElementById('edit-id').value;
-        const url = document.getElementById('p-url').value.trim();
-        const datos = {
-            nombre: document.getElementById('p-nombre').value,
-            precio: Number(document.getElementById('p-precio').value),
-            stock: Number(document.getElementById('p-stock').value),
-            descripcion: document.getElementById('p-desc').value,
-            imagen: url,
-            waVendedor: sesion.celular,
-            tienda: sesion.tienda, // CAMPO CLAVE PARA VER-TIENDA.HTML
-            categoria: document.getElementById('p-categoria').value,
-            fecha: serverTimestamp()
-        };
-        if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
-        else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        notify("¡Guardado!");
-        resetForm();
+    // --- OPTIMIZACIÓN DE FOTOS (TU LÓGICA ORIGINAL) ---
+    async function optimizarImagen(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image(); img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = 300; canvas.height = 300;
+                    const min = Math.min(img.width, img.height);
+                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, 300, 300);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                };
+            };
+        });
+    }
+
+    document.getElementById('reg-foto-input').onchange = async (e) => {
+        if(!e.target.files[0]) return;
+        fotoPerfilOptimizada = await optimizarImagen(e.target.files[0]);
+        document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
+    };
+
+    document.getElementById('panel-foto-input').onchange = async (e) => {
+        if(!e.target.files[0]) return;
+        const foto = await optimizarImagen(e.target.files[0]);
+        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
+        snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Foto actualizada"); });
+    };
+
+    // --- REGISTRO Y LOGIN ---
+    window.registrarSocio = async () => {
+        const t = document.getElementById('reg-tienda').value.trim();
+        const wa = document.getElementById('reg-wa').value.trim();
+        const c = document.getElementById('reg-code').value.trim();
+        if(!t || !wa || !c) return notify("Completa los datos");
+        const fullWa = "57" + wa;
+        await addDoc(collection(db, "socios"), { nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0 });
+        sesion = { celular: fullWa, tienda: t };
+        localStorage.setItem('vendedorActual', JSON.stringify(sesion));
+        initPanel();
     };
 
     window.login = async () => {
-        const country = document.getElementById('log-country').value;
         const wa = document.getElementById('log-wa').value.trim();
         const c = document.getElementById('log-code').value.trim();
-        const fullWa = country + wa;
+        const fullWa = document.getElementById('log-country').value + wa;
         const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", fullWa)));
         let user = null;
         snap.forEach(d => { if(d.data().codigo == c) user = d.data(); });
@@ -180,31 +252,88 @@
             sesion = { celular: fullWa, tienda: user.nombreTienda };
             localStorage.setItem('vendedorActual', JSON.stringify(sesion));
             initPanel();
-        } else notify("Error");
+        } else notify("Datos incorrectos");
     };
 
+    // --- FUNCIÓN GUARDAR (CON LA CORRECCIÓN DE CAMPOS PARA VER-TIENDA) ---
+    window.guardarProducto = async () => {
+        const idEdit = document.getElementById('edit-id').value;
+        const url = document.getElementById('p-url').value.trim();
+        if(!url) return notify("Falta link de foto");
+
+        const datos = {
+            nombre: document.getElementById('p-nombre').value,
+            precio: Number(document.getElementById('p-precio').value),
+            stock: Number(document.getElementById('p-stock').value),
+            descripcion: document.getElementById('p-desc').value,
+            imagen: url.split(',')[0], 
+            imagenes: url.split(','),
+            waVendedor: sesion.celular, 
+            nombreTienda: sesion.tienda, // Para el panel
+            tienda: sesion.tienda,       // CORRECCIÓN: Este es el campo que ver-tienda.html necesita
+            categoria: document.getElementById('p-categoria').value,
+            fecha: serverTimestamp()
+        };
+
+        if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
+        else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
+        
+        notify("¡Publicado!");
+        resetForm();
+    };
+
+    // --- PANEL Y PRODUCTOS ---
     function initPanel() {
         switchView('view-vender');
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
+                esPRO = (d.plan === "pro");
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
-                if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                document.getElementById('plan-badge').innerText = d.plan === "pro" ? "SOCIO PRO" : "GRATIS";
+                if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
+                const badge = document.getElementById('plan-badge');
+                if(esPRO) {
+                    badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
+                    badge.className = "badge-plan pro-tag";
+                    document.getElementById('stats-pro').style.display = "flex";
+                    document.getElementById('stat-visitas').innerText = d.visitas || 0;
+                } else {
+                    badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`;
+                    badge.className = "badge-plan gratis-tag";
+                }
+                bloquearSegunPlan();
             });
         });
+
         onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
+            totalProductos = snap.size;
             const lista = document.getElementById('lista-productos');
             lista.innerHTML = '';
             snap.forEach(d => {
                 const p = d.data();
-                lista.innerHTML += `<div class="prod-card"><img src="${p.imagen}"> <div style="flex:1"><b>${p.nombre}</b></div> <button onclick="prepararEdit('${d.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button></div>`;
+                lista.innerHTML += `
+                    <div class="prod-card">
+                        <img src="${p.imagen}">
+                        <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
+                        <button onclick="prepararEdit('${d.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
+                        <button onclick="abrirModalDel('${d.id}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
             });
+            bloquearSegunPlan();
         });
+    }
+
+    function bloquearSegunPlan() {
+        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS && !document.getElementById('edit-id').value);
+        document.getElementById('mensaje-limite').style.display = bloqueado ? 'block' : 'none';
+        document.getElementById('form-card').classList.toggle('form-locked', bloqueado);
+        document.getElementById('btn-main').disabled = bloqueado;
     }
 
     window.prepararEdit = (id, n, p, s, d, img, cat) => {
         document.getElementById('edit-id').value = id;
+        document.getElementById('form-title').innerText = "Editar Producto";
+        document.getElementById('btn-main').innerText = "ACTUALIZAR CAMBIOS";
         document.getElementById('p-nombre').value = n;
         document.getElementById('p-precio').value = p;
         document.getElementById('p-stock').value = s;
@@ -212,12 +341,24 @@
         document.getElementById('p-url').value = img;
         document.getElementById('p-categoria').value = cat;
         window.scrollTo(0,0);
+        bloquearSegunPlan();
     };
+
+    window.abrirModalDel = (id) => { idParaBorrar = id; document.getElementById('confirm-del-modal').style.display = 'flex'; };
+    window.cerrarModalDel = () => { document.getElementById('confirm-del-modal').style.display = 'none'; };
+    document.getElementById('confirm-yes').onclick = async () => { if(idParaBorrar) await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); };
 
     window.notify = (text) => { const t = document.getElementById('toast'); t.innerText = text; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); };
     window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
     window.logout = () => { localStorage.clear(); window.location.reload(); };
-    function resetForm() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); document.getElementById('edit-id').value=''; }
+
+    function resetForm() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('form-title').innerText = "Gestionar Producto";
+        document.getElementById('btn-main').innerText = "GUARDAR PRODUCTO";
+        document.querySelectorAll('#view-vender input, #view-vender textarea').forEach(i => i.value = '');
+        bloquearSegunPlan();
+    }
 
     onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snap) => {
         const sel = document.getElementById('p-categoria');
