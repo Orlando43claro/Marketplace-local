@@ -43,6 +43,7 @@
         .pro-tag { background: var(--oro); color: var(--oscuro); box-shadow: 0 0 10px rgba(255, 177, 0, 0.4); }
         .bloqueo-pro { background: #fff5eb; border: 2px solid var(--naranja); padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 15px; }
         
+        .disabled-action { opacity: 0.2 !important; pointer-events: none !important; filter: grayscale(1); }
         .form-locked { opacity: 0.4; pointer-events: none; }
 
         .prod-card { background: white; padding: 10px; border-radius: 18px; margin-top: 10px; display: flex; gap: 12px; align-items: center; border: 1px solid #eee; }
@@ -65,9 +66,9 @@
     <div class="modal-card">
         <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-            <p><b>🔗 Link de Foto:</b> Pega el enlace directo de tu imagen (ImgBB, Google, etc).</p>
-            <p><b>⚡ Link Corto:</b> El botón azul genera un link profesional para WhatsApp.</p>
-            <p><b>🔐 Límites:</b> Plan Gratis permite 4 productos.</p>
+            <p><b>📸 Fotos Profesionales:</b> Pega el link directo de tu imagen. Recomendamos que sean <b>CUADRADAS</b> para un diseño perfecto.</p>
+            <p><b>🔗 Enlaces:</b> Puedes usar servicios como ImgBB para obtener enlaces directos permanentes.</p>
+            <p><b>🔐 Límites:</b> El Plan Gratis permite <b>4 publicaciones</b>. Para más capacidad y analíticas, activa el Plan PRO.</p>
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
     </div>
@@ -141,14 +142,14 @@
                     <input type="file" id="panel-foto-input" accept="image/*" style="display:none;">
                 </div>
                 <div>
-                    <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span><br>
+                    <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span> <i class="fas fa-check-circle" style="color:var(--azul); display:none;" id="header-verify"></i><br>
                     <span id="plan-badge" class="badge-plan"></span>
                 </div>
             </div>
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
         <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-link"></i> COPIAR LINK CORTO (WhatsApp)
+            <i class="fas fa-copy"></i> COPIAR LINK DE MI TIENDA
         </button>
     </div>
 
@@ -160,27 +161,30 @@
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
         <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">⚠️ LÍMITE ALCANZADO (4/4)</p>
+        <p style="font-size: 10px; color: #666; margin: 5px 0 10px;">Pásate a PRO para agregar más productos y editar.</p>
+        <button class="btn btn-naranja" style="padding: 10px; font-size: 11px; background: var(--verde);" onclick="window.open('https://wa.me/573155445183?text=Hola,%20alcancé%20mi%20límite%20de%204%20productos')">
+            ACTIVAR PLAN PRO
+        </button>
     </div>
 
     <div class="card" id="form-card">
         <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
         <label>Nombre del Producto</label><input type="text" id="p-nombre">
-        
-        <label>Link de la Foto</label>
-        <input type="text" id="p-url" placeholder="Pega el link de la foto aquí">
-
         <div style="display: flex; gap: 10px;">
             <div style="flex:1"><label>Precio</label><input type="number" id="p-precio"></div>
-            <div style="flex:1"><label>Stock</label><input type="number" id="p-stock" value="10"></div>
+            <div style="flex:1"><label>Stock</label><input type="number" id="p-stock"></div>
         </div>
         <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
         <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
-        
+        <label>Link Foto (Directo)</label><input type="text" id="p-url" placeholder="Pega el link de la imagen aquí">
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
     </div>
 
-    <div id="inventario" style="margin-top: 25px;"><div id="lista-productos"></div></div>
+    <div id="inventario" style="margin-top: 25px;">
+        <h3 style="font-size:11px; text-align:center; font-weight:800; text-transform: uppercase;">Mis Productos</h3>
+        <div id="lista-productos"></div>
+    </div>
 </div>
 
 <script type="module">
@@ -198,17 +202,17 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    
     let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
     let idParaBorrar = null;
     let fotoPerfilOptimizada = "";
     let esPRO = false;
     let totalProductos = 0;
+    let ultimaVisitaConocida = 0;
     const LIMITE_GRATIS = 4;
 
     window.cerrarInstrucciones = () => { document.getElementById('modal-instrucciones').style.display = 'none'; localStorage.setItem('guiaLeida', 'true'); };
 
-    async function optimizarImagen(file, size = 300) {
+    async function optimizarImagen(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -216,36 +220,26 @@
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    canvas.width = size; canvas.height = size;
+                    canvas.width = 300; canvas.height = 300;
                     const min = Math.min(img.width, img.height);
-                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, size, size);
-                    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.8);
+                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, 300, 300);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
                 };
             };
         });
     }
 
-    // REGISTRO Y PERFIL (BASE64 ORIGINAL)
     document.getElementById('reg-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
-        const blob = await optimizarImagen(e.target.files[0], 300);
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = () => {
-            fotoPerfilOptimizada = reader.result;
-            document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
-        };
+        fotoPerfilOptimizada = await optimizarImagen(e.target.files[0]);
+        document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
     };
 
     document.getElementById('panel-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
-        const blob = await optimizarImagen(e.target.files[0], 300);
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-            const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
-            snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: reader.result }); notify("Perfil actualizado"); });
-        };
+        const foto = await optimizarImagen(e.target.files[0]);
+        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
+        snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Imagen actualizada"); });
     };
 
     window.registrarSocio = async () => {
@@ -278,19 +272,9 @@
 
     window.logout = () => { localStorage.clear(); window.location.reload(); };
 
-    // FUNCIÓN LINK CORTO ORIGINAL (TINYURL)
-    window.copiarLinkTienda = async () => {
-        const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
-        notify("⏳ Acortando link...");
-        try {
-            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
-            const shortUrl = await res.text();
-            await navigator.clipboard.writeText(shortUrl);
-            notify("✅ Link corto copiado!");
-        } catch (err) {
-            await navigator.clipboard.writeText(urlLarga);
-            notify("✅ Link copiado (Original)");
-        }
+    window.copiarLinkTienda = () => {
+        const url = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
+        navigator.clipboard.writeText(url).then(() => notify("Link copiado"));
     };
 
     function initPanel(forzarGuia = false) {
@@ -303,14 +287,23 @@
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
                 const badge = document.getElementById('plan-badge');
+                const verify = document.getElementById('header-verify');
+                const statsBox = document.getElementById('stats-pro');
+                const visitasActuales = d.visitas || 0;
+                if (visitasActuales > ultimaVisitaConocida && ultimaVisitaConocida > 0) { notify("🔥 ¡Alguien entró a tu tienda!"); }
+                ultimaVisitaConocida = visitasActuales;
                 if(esPRO) {
                     badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
                     badge.className = "badge-plan pro-tag";
-                    document.getElementById('stats-pro').style.display = "flex";
-                    document.getElementById('stat-visitas').innerText = d.visitas || 0;
+                    verify.style.display = "inline-block";
+                    statsBox.style.display = "flex";
+                    document.getElementById('stat-visitas').innerText = visitasActuales;
+                    obtenerTotalClics();
                 } else {
                     badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`;
                     badge.className = "badge-plan gratis-tag";
+                    verify.style.display = "none";
+                    statsBox.style.display = "none";
                 }
                 bloquearSegunPlan();
             });
@@ -319,72 +312,103 @@
             totalProductos = snap.size;
             renderInventario(snap);
             bloquearSegunPlan();
+            if(esPRO) obtenerTotalClics();
         });
     }
 
+    async function obtenerTotalClics() {
+        const q = query(collection(db, "productos"), where("waVendedor", "==", sesion.celular));
+        const snap = await getDocs(q);
+        let total = 0;
+        snap.forEach(doc => { total += (doc.data().clics || 0); });
+        document.getElementById('stat-clics').innerText = total;
+    }
+
     function bloquearSegunPlan() {
-        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS && !document.getElementById('edit-id').value);
-        document.getElementById('mensaje-limite').style.display = bloqueado ? 'block' : 'none';
-        document.getElementById('form-card').classList.toggle('form-locked', bloqueado);
-        document.getElementById('btn-main').disabled = bloqueado;
+        const estaBloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS && !document.getElementById('edit-id').value);
+        const formCard = document.getElementById('form-card');
+        const msg = document.getElementById('mensaje-limite');
+        const btnMain = document.getElementById('btn-main');
+        if(estaBloqueado) {
+            msg.style.display = 'block';
+            formCard.classList.add('form-locked');
+            btnMain.disabled = true;
+            btnMain.style.background = "#ccc";
+            btnMain.innerText = "LÍMITE ALCANZADO";
+        } else {
+            msg.style.display = 'none';
+            formCard.classList.remove('form-locked');
+            btnMain.disabled = false;
+            btnMain.style.background = "var(--naranja)";
+            btnMain.innerText = document.getElementById('edit-id').value ? "GUARDAR CAMBIOS" : "GUARDAR PRODUCTO";
+        }
     }
 
     window.guardarProducto = async () => {
         const idEdit = document.getElementById('edit-id').value;
         const url = document.getElementById('p-url').value.trim();
-        if(!url) return notify("Falta el link de la foto");
+        if(!url) return notify("Falta link de foto");
         const datos = {
             nombre: document.getElementById('p-nombre').value,
             precio: Number(document.getElementById('p-precio').value),
             stock: Number(document.getElementById('p-stock').value),
             descripcion: document.getElementById('p-desc').value,
-            imagen: url,
-            waVendedor: sesion.celular,
+            imagen: url.split(',')[0], imagenes: url.split(','),
+            waVendedor: sesion.celular, nombreTienda: sesion.tienda,
             categoria: document.getElementById('p-categoria').value,
             fecha: serverTimestamp()
         };
         if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
         else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        notify("Guardado");
+        notify("Operación exitosa");
         resetForm();
     };
 
     function renderInventario(snap) {
         const lista = document.getElementById('lista-productos');
         lista.innerHTML = '';
+        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS);
         snap.forEach(d => {
             const p = d.data();
+            const claseBloqueo = (bloqueado && !esPRO) ? 'disabled-action' : '';
             lista.innerHTML += `
                 <div class="prod-card">
-                    <img src="${p.imagen}" onerror="this.src='https://img.icons8.com/fluency/48/image-not-found.png'">
-                    <div style="flex:1"><b style="font-size:12px;">${p.nombre}</b><br><small>$${p.precio}</small></div>
-                    <button onclick="prepararEdit('${d.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
-                    <button onclick="abrirModalDel('${d.id}')"><i class="fas fa-trash"></i></button>
+                    <img src="${p.imagen}">
+                    <div style="flex:1"><b style="font-size:12px;">${p.nombre}</b><br><small style="color:var(--naranja); font-weight:800;">$${p.precio.toLocaleString()}</small></div>
+                    <button class="${claseBloqueo}" onclick="prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagenes.join(',')}', '${p.categoria}')" style="border:none; background:none; color:var(--azul); padding:10px;"><i class="fas fa-edit"></i></button>
+                    <button class="${claseBloqueo}" onclick="abrirModalDel('${d.id}')" style="border:none; background:none; color:var(--rojo); padding:10px;"><i class="fas fa-trash"></i></button>
                 </div>`;
         });
     }
 
-    window.prepararEdit = (id, n, p, s, d, img, cat) => {
+    window.prepararEdit = (id, n, p, s, d, imgs, cat) => {
         document.getElementById('edit-id').value = id;
         document.getElementById('p-nombre').value = n;
         document.getElementById('p-precio').value = p;
         document.getElementById('p-stock').value = s;
         document.getElementById('p-desc').value = d;
-        document.getElementById('p-url').value = img;
+        document.getElementById('p-url').value = imgs;
         document.getElementById('p-categoria').value = cat;
-        window.scrollTo(0,0);
+        document.getElementById('form-title').innerText = "Editar Producto";
+        document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
+        window.scrollTo({top: 0, behavior: 'smooth'});
         bloquearSegunPlan();
     };
 
     window.abrirModalDel = (id) => { idParaBorrar = id; document.getElementById('confirm-del-modal').style.display = 'flex'; };
-    window.cerrarModalDel = () => { document.getElementById('confirm-del-modal').style.display = 'none'; };
-    document.getElementById('confirm-yes').onclick = async () => { if(idParaBorrar) await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); };
+    window.cerrarModalDel = () => { idParaBorrar = null; document.getElementById('confirm-del-modal').style.display = 'none'; };
+
+    document.getElementById('confirm-yes').onclick = async () => {
+        if(idParaBorrar) { await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); notify("Eliminado"); }
+    };
 
     window.notify = (text) => { const t = document.getElementById('toast'); t.innerText = text; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); };
     window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
     
     function resetForm() {
         document.getElementById('edit-id').value = '';
+        document.getElementById('form-title').innerText = "Gestionar Producto";
+        document.getElementById('btn-main').innerText = "GUARDAR PRODUCTO";
         document.querySelectorAll('#view-vender input, #view-vender textarea').forEach(i => i.value = '');
         bloquearSegunPlan();
     }
