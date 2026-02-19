@@ -55,6 +55,13 @@
         .prod-card img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; }
         
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 20px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; display: none; font-weight: bold; font-size: 12px; border-left: 5px solid var(--naranja); width: 80%; text-align: center; }
+
+        /* ANALITICAS PRO */
+        .stats-container { display: none; background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; border: 1.5px solid #edf2f7; justify-content: space-around; text-align: center; }
+        .stat-box { flex: 1; }
+        .stat-box span:first-child { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-box span:last-child { font-size: 18px; font-weight: 900; color: var(--oscuro); }
+        .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
     </style>
 </head>
 <body>
@@ -65,12 +72,10 @@
     <div class="modal-card">
         <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-
             <p><b>📸 Fotos Perfectas:</b> Sube imagenes <b>CUADRADAS</b>. Esto garantiza que tu catalogo se vea organizado y profesional.</p>
             <p><b>🔗 Enlace Directo:</b> En ImgBB usa la opción "Enlace directo" para que la foto cargue instantaneamente.</p>
             <p><b>🔐 Bloqueo de Seguridad:</b> El Plan Gratis permite <b>4 publicaciones</b>. Al llegar al lImite, las opciones de <u>editar y borrar</u> se bloquean para proteger la integridad del sistema verificado.</p>
             <p><b>👑 Socio PRO:</b> Ser PRO te permite publicaciones ilimitadas y soporte prioritario para tu tienda.</p>
-        
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
     </div>
@@ -153,6 +158,18 @@
         <button class="btn-share" onclick="copiarLinkTienda()">
             <i class="fas fa-copy"></i> COPIAR LINK DE MI TIENDA
         </button>
+    </div>
+
+    <div id="stats-pro" class="stats-container">
+        <div class="stat-box">
+            <span>Visitas</span>
+            <span id="stat-visitas">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+            <span>Interesados</span>
+            <span id="stat-clics">0</span>
+        </div>
     </div>
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
@@ -287,14 +304,20 @@
                 
                 const badge = document.getElementById('plan-badge');
                 const verify = document.getElementById('header-verify');
+                const statsBox = document.getElementById('stats-pro');
+
                 if(esPRO) {
                     badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
                     badge.className = "badge-plan pro-tag";
                     verify.style.display = "inline-block";
+                    statsBox.style.display = "flex";
+                    document.getElementById('stat-visitas').innerText = d.visitas || 0;
+                    obtenerTotalClics();
                 } else {
                     badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`;
                     badge.className = "badge-plan gratis-tag";
                     verify.style.display = "none";
+                    statsBox.style.display = "none";
                 }
                 bloquearSegunPlan();
             });
@@ -304,10 +327,19 @@
             totalProductos = snap.size;
             renderInventario(snap);
             bloquearSegunPlan();
+            if(esPRO) obtenerTotalClics();
         });
     }
 
-    // BLOQUEO CORREGIDO
+    // NUEVA FUNCION: CALCULAR CLICS TOTALES
+    async function obtenerTotalClics() {
+        const q = query(collection(db, "productos"), where("waVendedor", "==", sesion.celular));
+        const snap = await getDocs(q);
+        let total = 0;
+        snap.forEach(doc => { total += (doc.data().clics || 0); });
+        document.getElementById('stat-clics').innerText = total;
+    }
+
     function bloquearSegunPlan() {
         const estaBloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS);
         const formCard = document.getElementById('form-card');
