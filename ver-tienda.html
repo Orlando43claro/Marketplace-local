@@ -1,176 +1,351 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda | YaMi</title>
-    <link rel="icon" type="image/png" href="https://i.ibb.co/CRZNPpf/1770824892177.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --oro: #ffb100; --rojo: #d91e18; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding-top: 85px; overflow-x: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tienda | YaMi</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/CRZNPpf/1770824892177.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        #bloqueo-aviso { display: none; background: var(--rojo); color: white; text-align: center; padding: 10px; font-size: 12px; font-weight: bold; position: fixed; top: 70px; width: 100%; z-index: 999; }
-        header { background: white; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 70px; }
-        .store-info { display: flex; align-items: center; gap: 12px; }
-        .store-logo { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--naranja); object-fit: cover; background: #eee; }
-        .store-name { font-weight: 800; color: var(--oscuro); font-size: 15px; }
+<style>
+:root{
+--naranja:#ff6b00;
+--oscuro:#1e293b;
+--gris:#f4f6f9;
+--rojo:#d91e18;
+}
 
-        .container { max-width: 600px; margin: auto; padding: 15px; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .card img { width: 100%; height: 160px; object-fit: cover; }
-        .card-body { padding: 12px; }
-        .p-name { font-size: 13px; font-weight: 700; color: var(--oscuro); margin-bottom: 5px; display: block; height: 32px; overflow: hidden; }
-        .p-price { color: var(--naranja); font-weight: 800; font-size: 15px; }
-        
-        .btn-add { background: var(--naranja); color: white; border: none; width: 35px; height: 35px; border-radius: 12px; cursor: pointer; position: absolute; bottom: 10px; right: 10px; font-size: 18px; }
+body{
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(to bottom,#fff,var(--gris));
+margin:0;
+padding-top:90px;
+}
 
-        .cart-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--oscuro); color: white; padding: 12px 25px; border-radius: 50px; display: none; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000; width: 90%; max-width: 400px; justify-content: space-between; }
-        
-        #toast { position: fixed; top: 85px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; z-index: 3000; font-weight: bold; font-size: 12px; border-left: 4px solid var(--naranja); }
-    </style>
+header{
+background:white;
+padding:12px 20px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+position:fixed;
+top:0;
+width:100%;
+box-shadow:0 4px 20px rgba(0,0,0,.05);
+z-index:1000;
+}
+
+.store-logo{
+width:50px;
+height:50px;
+border-radius:50%;
+border:3px solid var(--naranja);
+object-fit:cover;
+}
+
+.store-name{
+font-weight:800;
+font-size:16px;
+color:var(--oscuro);
+}
+
+.container{
+max-width:650px;
+margin:auto;
+padding:20px 15px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:15px;
+}
+
+.card{
+background:white;
+border-radius:22px;
+overflow:hidden;
+box-shadow:0 6px 25px rgba(0,0,0,.06);
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.card img{
+width:100%;
+height:170px;
+object-fit:cover;
+}
+
+.card-body{
+padding:14px;
+}
+
+.p-name{
+font-weight:700;
+font-size:14px;
+height:36px;
+overflow:hidden;
+display:block;
+}
+
+.p-price{
+color:var(--naranja);
+font-weight:900;
+font-size:16px;
+margin-top:5px;
+}
+
+.btn-add{
+margin-top:10px;
+width:100%;
+background:var(--naranja);
+color:white;
+border:none;
+padding:8px;
+border-radius:12px;
+font-weight:700;
+cursor:pointer;
+}
+
+.cart-bar{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:var(--oscuro);
+color:white;
+padding:14px 25px;
+border-radius:60px;
+display:none;
+align-items:center;
+gap:15px;
+width:92%;
+max-width:420px;
+justify-content:space-between;
+cursor:pointer;
+}
+
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.5);
+display:none;
+justify-content:center;
+align-items:flex-end;
+z-index:3000;
+}
+
+.modal-content{
+background:white;
+width:100%;
+max-width:600px;
+border-radius:25px 25px 0 0;
+padding:20px;
+max-height:85vh;
+overflow-y:auto;
+}
+
+.modal h3{
+margin-top:0;
+}
+
+.cart-item{
+display:flex;
+justify-content:space-between;
+margin-bottom:8px;
+font-size:14px;
+}
+
+textarea{
+width:100%;
+margin-top:15px;
+padding:10px;
+border-radius:10px;
+border:1px solid #ddd;
+resize:none;
+}
+
+.btn-whatsapp{
+width:100%;
+margin-top:15px;
+background:var(--naranja);
+color:white;
+border:none;
+padding:12px;
+border-radius:50px;
+font-weight:800;
+cursor:pointer;
+}
+
+.close{
+text-align:right;
+font-size:14px;
+color:#888;
+cursor:pointer;
+margin-bottom:10px;
+}
+</style>
 </head>
+
 <body>
 
-<div id="bloqueo-aviso">⚠️ TIENDA TEMPORALMENTE INACTIVA</div>
-<div id="toast"></div>
-
 <header>
-    <div class="store-info">
-        <img id="logo-img" class="store-logo" src="">
-        <div>
-            <div id="store-name" class="store-name">Cargando tienda...</div>
-            <div id="store-status" style="font-size: 10px; font-weight: bold;"></div>
-        </div>
-    </div>
-    <div style="background: var(--gris); padding: 8px 15px; border-radius: 50px; font-size: 12px; font-weight: 800;">
-        <i class="fas fa-shopping-bag" style="color: var(--naranja);"></i> YaMi
-    </div>
+<div style="display:flex;align-items:center;gap:10px;">
+<img id="logo-img" class="store-logo" src="">
+<div>
+<div id="store-name" class="store-name">Cargando tienda...</div>
+</div>
+</div>
+<div style="font-weight:800;">YaMi</div>
 </header>
 
 <div class="container">
-    <div id="productos-grid" class="grid">
-        </div>
+<div id="productos-grid" class="grid"></div>
 </div>
 
-<div id="cart-bar" class="cart-bar">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-shopping-cart"></i>
-        <span id="cart-count">0</span> productos
-    </div>
-    <button onclick="enviarPedido()" style="background: var(--naranja); color: white; border: none; padding: 8px 18px; border-radius: 50px; font-weight: 800; cursor: pointer;">PEDIR $ <span id="cart-total">0</span></button>
+<div id="cart-bar" class="cart-bar" onclick="openCart()">
+<div>
+<i class="fas fa-shopping-cart"></i>
+<span id="cart-count">0</span> productos
+</div>
+<div>$ <span id="cart-total">0</span></div>
+</div>
+
+<!-- MODAL CARRITO -->
+<div id="cart-modal" class="modal">
+<div class="modal-content">
+<div class="close" onclick="closeCart()">Cerrar ✕</div>
+<h3>Tu Lista</h3>
+<div id="cart-items"></div>
+<h4>Total: $ <span id="modal-total">0</span></h4>
+
+<textarea id="pregunta" rows="3" placeholder="Escribe una pregunta o mensaje para el vendedor..."></textarea>
+
+<button class="btn-whatsapp" onclick="enviarPedido()">
+Preguntar por WhatsApp
+</button>
+</div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
-        authDomain: "express-market-868d9.firebaseapp.com",
-        projectId: "express-market-868d9",
-        storageBucket: "express-market-868d9.firebasestorage.app",
-        messagingSenderId: "502987186701",
-        appId: "1:502987186701:web:9fb3c28ce377fb27552b44"
-    };
+const firebaseConfig={
+apiKey:"AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
+authDomain:"express-market-868d9.firebaseapp.com",
+projectId:"express-market-868d9",
+storageBucket:"express-market-868d9.firebasestorage.app",
+messagingSenderId:"502987186701",
+appId:"1:502987186701:web:9fb3c28ce377fb27552b44"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const storeId = urlParams.get('id'); // El número de WhatsApp
-    let cart = [];
-    let storeData = null;
+const urlParams=new URLSearchParams(window.location.search);
+const storeId=urlParams.get('id');
 
-    async function start() {
-        if (!storeId) return;
+let cart=[];
+let storeData=null;
 
-        // 1. Buscar Datos del Socio (Tienda)
-        const qSocio = query(collection(db, "socios"), where("celular", "==", storeId));
-        const snapSocio = await getDocs(qSocio);
-        
-        if (!snapSocio.empty) {
-            const docSocio = snapSocio.docs[0];
-            storeData = docSocio.data();
-            document.getElementById('store-name').innerText = storeData.nombreTienda;
-            document.getElementById('logo-img').src = storeData.fotoPerfil || 'https://via.placeholder.com/50';
-            
-            // Sumar visita
-            await updateDoc(doc(db, "socios", docSocio.id), { visitas: increment(1) });
+async function start(){
+if(!storeId) return;
 
-            if (storeData.plan !== "pro" && storeData.plan !== "gratis") {
-                document.getElementById('bloqueo-aviso').style.display = 'block';
-                return;
-            }
-        }
+const qSocio=query(collection(db,"socios"),where("celular","==",storeId));
+const snapSocio=await getDocs(qSocio);
 
-        // 2. BUSCAR PRODUCTOS (La parte clave)
-        // Buscamos productos donde waVendedor coincida con el storeId de la URL
-        const qProd = query(collection(db, "productos"), where("waVendedor", "==", storeId));
-        const snapProd = await getDocs(qProd);
-        const grid = document.getElementById('productos-grid');
-        grid.innerHTML = '';
+if(!snapSocio.empty){
+storeData=snapSocio.docs[0].data();
+document.getElementById('store-name').innerText=storeData.nombreTienda;
+document.getElementById('logo-img').src=storeData.fotoPerfil||'https://via.placeholder.com/50';
+}
 
-        if (snapProd.empty) {
-            grid.innerHTML = '<p style="grid-column: 1/3; text-align: center; padding: 20px; color: #888;">No hay productos disponibles en esta tienda.</p>';
-            return;
-        }
+const qProd=query(collection(db,"productos"),where("waVendedor","==",storeId));
+const snapProd=await getDocs(qProd);
+const grid=document.getElementById('productos-grid');
 
-        snapProd.forEach(d => {
-            const p = d.data();
-            grid.innerHTML += `
-                <div class="card">
-                    <img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/150'">
-                    <div class="card-body">
-                        <span class="p-name">${p.nombre}</span>
-                        <span class="p-price">$${Number(p.precio).toLocaleString()}</span>
-                        <button class="btn-add" onclick="addToCart('${d.id}', '${p.nombre}', ${p.precio})">+</button>
-                    </div>
-                </div>
-            `;
-        });
-    }
+snapProd.forEach(d=>{
+const p=d.data();
+grid.innerHTML+=`
+<div class="card">
+<img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/150'">
+<div class="card-body">
+<span class="p-name">${p.nombre}</span>
+<span class="p-price">$${Number(p.precio).toLocaleString()}</span>
+<button class="btn-add" onclick="addToCart('${d.id}','${p.nombre}',${p.precio})">
+Añadir a lista
+</button>
+</div>
+</div>
+`;
+});
+}
 
-    window.addToCart = (id, nombre, precio) => {
-        cart.push({ id, nombre, precio });
-        updateCartUI();
-        notify("Agregado al carrito");
-    };
+window.addToCart=(id,nombre,precio)=>{
+cart.push({id,nombre,precio});
+updateCartUI();
+};
 
-    function updateCartUI() {
-        const bar = document.getElementById('cart-bar');
-        if (cart.length > 0) {
-            bar.style.display = 'flex';
-            document.getElementById('cart-count').innerText = cart.length;
-            const total = cart.reduce((sum, item) => sum + item.precio, 0);
-            document.getElementById('cart-total').innerText = total.toLocaleString();
-        } else {
-            bar.style.display = 'none';
-        }
-    }
+function updateCartUI(){
+const bar=document.getElementById('cart-bar');
+if(cart.length>0){
+bar.style.display='flex';
+document.getElementById('cart-count').innerText=cart.length;
+const total=cart.reduce((s,i)=>s+i.precio,0);
+document.getElementById('cart-total').innerText=total.toLocaleString();
+}
+}
 
-    window.enviarPedido = () => {
-        let m = `*NUEVO PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
-        let t = 0;
-        cart.forEach(i => {
-            m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`;
-            t += Number(i.precio);
-        });
-        m += `%0A*TOTAL A PAGAR: $${t.toLocaleString()}*%0A%0A_¿Están disponibles?_`;
-        window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
-    };
+window.openCart=()=>{
+document.getElementById('cart-modal').style.display='flex';
+renderCart();
+};
 
-    function notify(text) {
-        const t = document.getElementById('toast');
-        t.innerText = text;
-        t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2000);
-    }
+window.closeCart=()=>{
+document.getElementById('cart-modal').style.display='none';
+};
 
-    start();
+function renderCart(){
+const container=document.getElementById('cart-items');
+container.innerHTML='';
+let total=0;
+
+cart.forEach(i=>{
+container.innerHTML+=`
+<div class="cart-item">
+<span>${i.nombre}</span>
+<span>$${Number(i.precio).toLocaleString()}</span>
+</div>
+`;
+total+=i.precio;
+});
+
+document.getElementById('modal-total').innerText=total.toLocaleString();
+}
+
+window.enviarPedido=()=>{
+let mensaje=`*Consulta desde YaMi - ${storeData.nombreTienda}*%0A%0A`;
+let total=0;
+
+cart.forEach(i=>{
+mensaje+=`• ${i.nombre} ($${i.precio})%0A`;
+total+=i.precio;
+});
+
+mensaje+=`%0ATotal: $${total}%0A%0A`;
+const pregunta=document.getElementById('pregunta').value;
+if(pregunta){
+mensaje+=`Mensaje: ${pregunta}%0A`;
+}
+
+window.open(`https://wa.me/${storeId}?text=${mensaje}`,'_blank');
+};
+
+start();
 </script>
 </body>
 </html>
