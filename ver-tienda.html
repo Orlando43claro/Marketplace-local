@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tienda | YaMi</title>
-<link rel="icon" type="image/png" href="https://i.ibb.co/CRZNPpf/1770824892177.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
@@ -12,16 +11,18 @@
 --naranja:#ff6b00;
 --oscuro:#1e293b;
 --gris:#f4f6f9;
---rojo:#d91e18;
+--verde:#16a34a;
+--rojo:#dc2626;
 }
 
 body{
 font-family:'Segoe UI',sans-serif;
-background:linear-gradient(to bottom,#fff,var(--gris));
+background:var(--gris);
 margin:0;
 padding-top:90px;
 }
 
+/* HEADER */
 header{
 background:white;
 padding:12px 20px;
@@ -46,41 +47,47 @@ object-fit:cover;
 .store-name{
 font-weight:800;
 font-size:16px;
-color:var(--oscuro);
 }
 
+.badge-pro{
+background:var(--verde);
+color:white;
+font-size:10px;
+padding:4px 8px;
+border-radius:20px;
+margin-top:3px;
+display:inline-block;
+}
+
+/* GRID RESPONSIVE */
 .container{
-max-width:650px;
+max-width:1000px;
 margin:auto;
 padding:20px 15px;
 }
 
 .grid{
 display:grid;
-grid-template-columns:repeat(2,1fr);
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
 gap:15px;
 }
 
 .card{
 background:white;
-border-radius:22px;
+border-radius:18px;
 overflow:hidden;
-box-shadow:0 6px 25px rgba(0,0,0,.06);
-transition:.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
+box-shadow:0 6px 20px rgba(0,0,0,.05);
+padding-bottom:10px;
 }
 
 .card img{
 width:100%;
-height:170px;
+height:160px;
 object-fit:cover;
 }
 
 .card-body{
-padding:14px;
+padding:10px;
 }
 
 .p-name{
@@ -88,28 +95,27 @@ font-weight:700;
 font-size:14px;
 height:36px;
 overflow:hidden;
-display:block;
 }
 
 .p-price{
 color:var(--naranja);
 font-weight:900;
-font-size:16px;
 margin-top:5px;
 }
 
 .btn-add{
-margin-top:10px;
+margin-top:8px;
 width:100%;
 background:var(--naranja);
 color:white;
 border:none;
 padding:8px;
-border-radius:12px;
+border-radius:10px;
 font-weight:700;
 cursor:pointer;
 }
 
+/* CARRITO */
 .cart-bar{
 position:fixed;
 bottom:20px;
@@ -117,14 +123,13 @@ left:50%;
 transform:translateX(-50%);
 background:var(--oscuro);
 color:white;
-padding:14px 25px;
-border-radius:60px;
+padding:12px 20px;
+border-radius:50px;
 display:none;
-align-items:center;
-gap:15px;
-width:92%;
-max-width:420px;
 justify-content:space-between;
+align-items:center;
+width:90%;
+max-width:420px;
 cursor:pointer;
 }
 
@@ -148,15 +153,18 @@ max-height:85vh;
 overflow-y:auto;
 }
 
-.modal h3{
-margin-top:0;
-}
-
 .cart-item{
 display:flex;
 justify-content:space-between;
+align-items:center;
 margin-bottom:8px;
 font-size:14px;
+}
+
+.remove{
+color:var(--rojo);
+cursor:pointer;
+font-size:12px;
 }
 
 textarea{
@@ -180,26 +188,36 @@ font-weight:800;
 cursor:pointer;
 }
 
-.close{
-text-align:right;
-font-size:14px;
-color:#888;
-cursor:pointer;
-margin-bottom:10px;
+/* TOAST */
+#toast{
+position:fixed;
+top:100px;
+left:50%;
+transform:translateX(-50%);
+background:white;
+padding:10px 20px;
+border-radius:30px;
+box-shadow:0 8px 20px rgba(0,0,0,.1);
+display:none;
+font-size:13px;
+font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
+<div id="toast"></div>
+
 <header>
-<div style="display:flex;align-items:center;gap:10px;">
+<div style="display:flex;gap:10px;align-items:center;">
 <img id="logo-img" class="store-logo" src="">
 <div>
-<div id="store-name" class="store-name">Cargando tienda...</div>
+<div id="store-name" class="store-name">Cargando...</div>
+<div id="pro-badge"></div>
 </div>
 </div>
-<div style="font-weight:800;">YaMi</div>
+<div><i class="fas fa-store"></i></div>
 </header>
 
 <div class="container">
@@ -207,26 +225,19 @@ margin-bottom:10px;
 </div>
 
 <div id="cart-bar" class="cart-bar" onclick="openCart()">
-<div>
-<i class="fas fa-shopping-cart"></i>
-<span id="cart-count">0</span> productos
-</div>
+<div><i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span></div>
 <div>$ <span id="cart-total">0</span></div>
 </div>
 
-<!-- MODAL CARRITO -->
 <div id="cart-modal" class="modal">
 <div class="modal-content">
-<div class="close" onclick="closeCart()">Cerrar ✕</div>
 <h3>Tu Lista</h3>
 <div id="cart-items"></div>
 <h4>Total: $ <span id="modal-total">0</span></h4>
 
-<textarea id="pregunta" rows="3" placeholder="Escribe una pregunta o mensaje para el vendedor..."></textarea>
+<textarea id="pregunta" rows="3" placeholder="Haz una pregunta al vendedor..."></textarea>
 
-<button class="btn-whatsapp" onclick="enviarPedido()">
-Preguntar por WhatsApp
-</button>
+<button class="btn-whatsapp" onclick="enviarPedido()">Preguntar por WhatsApp</button>
 </div>
 </div>
 
@@ -252,6 +263,13 @@ const storeId=urlParams.get('id');
 let cart=[];
 let storeData=null;
 
+function toast(text){
+const t=document.getElementById('toast');
+t.innerText=text;
+t.style.display='block';
+setTimeout(()=>t.style.display='none',2000);
+}
+
 async function start(){
 if(!storeId) return;
 
@@ -262,6 +280,11 @@ if(!snapSocio.empty){
 storeData=snapSocio.docs[0].data();
 document.getElementById('store-name').innerText=storeData.nombreTienda;
 document.getElementById('logo-img').src=storeData.fotoPerfil||'https://via.placeholder.com/50';
+
+if(storeData.plan==="pro"){
+document.getElementById('pro-badge').innerHTML=
+'<span class="badge-pro">✔ Vendedor Verificado PRO</span>';
+}
 }
 
 const qProd=query(collection(db,"productos"),where("waVendedor","==",storeId));
@@ -272,10 +295,10 @@ snapProd.forEach(d=>{
 const p=d.data();
 grid.innerHTML+=`
 <div class="card">
-<img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/150'">
+<img src="${p.imagen}">
 <div class="card-body">
-<span class="p-name">${p.nombre}</span>
-<span class="p-price">$${Number(p.precio).toLocaleString()}</span>
+<div class="p-name">${p.nombre}</div>
+<div class="p-price">$${Number(p.precio).toLocaleString()}</div>
 <button class="btn-add" onclick="addToCart('${d.id}','${p.nombre}',${p.precio})">
 Añadir a lista
 </button>
@@ -286,18 +309,20 @@ Añadir a lista
 }
 
 window.addToCart=(id,nombre,precio)=>{
+if(cart.some(p=>p.id===id)){
+toast("Este producto ya está agregado a la lista");
+return;
+}
 cart.push({id,nombre,precio});
-updateCartUI();
+updateCart();
 };
 
-function updateCartUI(){
+function updateCart(){
 const bar=document.getElementById('cart-bar');
-if(cart.length>0){
 bar.style.display='flex';
 document.getElementById('cart-count').innerText=cart.length;
 const total=cart.reduce((s,i)=>s+i.precio,0);
 document.getElementById('cart-total').innerText=total.toLocaleString();
-}
 }
 
 window.openCart=()=>{
@@ -305,20 +330,19 @@ document.getElementById('cart-modal').style.display='flex';
 renderCart();
 };
 
-window.closeCart=()=>{
-document.getElementById('cart-modal').style.display='none';
-};
-
 function renderCart(){
 const container=document.getElementById('cart-items');
 container.innerHTML='';
 let total=0;
 
-cart.forEach(i=>{
+cart.forEach((i,index)=>{
 container.innerHTML+=`
 <div class="cart-item">
 <span>${i.nombre}</span>
+<div>
 <span>$${Number(i.precio).toLocaleString()}</span>
+<span class="remove" onclick="removeItem(${index})">Eliminar</span>
+</div>
 </div>
 `;
 total+=i.precio;
@@ -327,21 +351,22 @@ total+=i.precio;
 document.getElementById('modal-total').innerText=total.toLocaleString();
 }
 
+window.removeItem=(index)=>{
+cart.splice(index,1);
+renderCart();
+updateCart();
+};
+
 window.enviarPedido=()=>{
 let mensaje=`*Consulta desde YaMi - ${storeData.nombreTienda}*%0A%0A`;
-let total=0;
-
 cart.forEach(i=>{
 mensaje+=`• ${i.nombre} ($${i.precio})%0A`;
-total+=i.precio;
 });
-
-mensaje+=`%0ATotal: $${total}%0A%0A`;
+mensaje+=`%0A`;
 const pregunta=document.getElementById('pregunta').value;
 if(pregunta){
 mensaje+=`Mensaje: ${pregunta}%0A`;
 }
-
 window.open(`https://wa.me/${storeId}?text=${mensaje}`,'_blank');
 };
 
