@@ -56,10 +56,6 @@
         .stat-box span:first-child { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
         .stat-box span:last-child { font-size: 18px; font-weight: 900; color: var(--oscuro); }
         .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
-
-        .prod-cam-box { display: flex; align-items: center; gap: 12px; background: #fffcf9; padding: 12px; border-radius: 18px; border: 1.5px dashed var(--naranja); margin: 10px 0; cursor: pointer; }
-        .cam-btn-icon { width: 45px; height: 45px; background: var(--naranja); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
-        .loader-cam { display: none; position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.5); border-radius: 12px; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -68,11 +64,11 @@
 
 <div id="modal-instrucciones" class="modal-confirm">
     <div class="modal-card">
-        <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
+        <h3 style="margin-top: 10px; font-size: 17px;">Guía de Usuario</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-            <p><b>📸 Fotos de Productos:</b> Se guardan en Firebase para máxima velocidad.</p>
-            <p><b>🔗 Link Corto:</b> El botón azul genera un link profesional para WhatsApp.</p>
-            <p><b>🔐 Límites:</b> Plan Gratis permite 4 productos.</p>
+            <p><b>🔗 Link de Foto:</b> Pega el enlace directo de la imagen de tu producto.</p>
+            <p><b>📲 Link Corto:</b> Copia el enlace de tu tienda para compartir en redes.</p>
+            <p><b>🔐 Límites:</b> El Plan Gratis permite hasta 4 publicaciones.</p>
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
     </div>
@@ -153,7 +149,7 @@
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
         <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-link"></i> COPIAR LINK CORTO (WhatsApp)
+            <i class="fas fa-link"></i> COPIAR LINK DE MI TIENDA
         </button>
     </div>
 
@@ -165,30 +161,23 @@
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
         <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">⚠️ LÍMITE ALCANZADO (4/4)</p>
+        <button class="btn btn-naranja" style="padding: 10px; font-size: 11px; margin-top: 5px; background: var(--verde);" onclick="window.open('https://wa.me/573155445183')">ACTIVAR PRO</button>
     </div>
 
     <div class="card" id="form-card">
         <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
-        <label>Nombre del Producto</label><input type="text" id="p-nombre">
+        <label>Nombre del Producto</label><input type="text" id="p-nombre" placeholder="Ej: Pizza Familiar">
         
-        <label>Foto del Producto</label>
-        <div class="prod-cam-box" onclick="document.getElementById('input-foto-prod').click()">
-            <div class="cam-btn-icon">
-                <i class="fas fa-camera"></i>
-                <div id="loader-cam-prod" class="loader-cam"><i class="fas fa-spinner fa-spin"></i></div>
-            </div>
-            <div><p style="margin:0; font-size:11px; font-weight:bold; color:var(--naranja);">TOCA PARA SUBIR</p></div>
-        </div>
-        <input type="file" id="input-foto-prod" accept="image/*" style="display:none;">
+        <label>Link de la Foto</label>
+        <input type="text" id="p-url" placeholder="https://ejemplo.com/foto.jpg">
 
         <div style="display: flex; gap: 10px;">
             <div style="flex:1"><label>Precio</label><input type="number" id="p-precio"></div>
             <div style="flex:1"><label>Stock</label><input type="number" id="p-stock" value="10"></div>
         </div>
-        <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
-        <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
-        <label>Link Foto (Auto)</label><input type="text" id="p-url" readonly placeholder="Esperando imagen...">
+        <label>Categoría</label><select id="p-categoria"><option value="Externo">Cargando...</option></select>
+        <label>Descripción</label><textarea id="p-desc" rows="2" placeholder="Detalles del producto..."></textarea>
         
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
     </div>
@@ -199,7 +188,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -212,7 +200,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
     
     let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
     let idParaBorrar = null;
@@ -223,7 +210,8 @@
 
     window.cerrarInstrucciones = () => { document.getElementById('modal-instrucciones').style.display = 'none'; localStorage.setItem('guiaLeida', 'true'); };
 
-    async function optimizarImagen(file, size = 600) {
+    // Función para procesar foto de perfil (se mantiene igual)
+    async function optimizarImagen(file, size = 300) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -240,23 +228,6 @@
         });
     }
 
-    document.getElementById('input-foto-prod').onchange = async (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const loader = document.getElementById('loader-cam-prod');
-        loader.style.display = 'flex';
-        try {
-            const blob = await optimizarImagen(file, 800);
-            const storageRef = ref(storage, 'productos/' + Date.now() + '.jpg');
-            await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
-            const url = await getDownloadURL(storageRef);
-            document.getElementById('p-url').value = url;
-            notify("✅ Foto cargada");
-        } catch (err) {
-            notify("❌ Error al subir");
-        } finally { loader.style.display = 'none'; }
-    };
-
     document.getElementById('reg-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
         const blob = await optimizarImagen(e.target.files[0], 300);
@@ -265,6 +236,17 @@
         reader.onloadend = () => {
             fotoPerfilOptimizada = reader.result;
             document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
+        };
+    };
+
+    document.getElementById('panel-foto-input').onchange = async (e) => {
+        if(!e.target.files[0]) return;
+        const blob = await optimizarImagen(e.target.files[0], 300);
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+            const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
+            snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: reader.result }); notify("Perfil actualizado"); });
         };
     };
 
@@ -293,23 +275,17 @@
             sesion = { celular: fullWa, tienda: user.nombreTienda };
             localStorage.setItem('vendedorActual', JSON.stringify(sesion));
             initPanel();
-        } else notify("Error de acceso");
+        } else notify("Datos incorrectos");
     };
 
     window.logout = () => { localStorage.clear(); window.location.reload(); };
 
     window.copiarLinkTienda = async () => {
         const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
-        notify("⏳ Acortando link...");
         try {
-            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
-            const shortUrl = await res.text();
-            await navigator.clipboard.writeText(shortUrl);
-            notify("✅ Link corto copiado!");
-        } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
             notify("✅ Link copiado");
-        }
+        } catch (err) { notify("Error al copiar"); }
     };
 
     function initPanel(forzarGuia = false) {
@@ -350,8 +326,9 @@
 
     window.guardarProducto = async () => {
         const idEdit = document.getElementById('edit-id').value;
-        const url = document.getElementById('p-url').value;
-        if(!url) return notify("Falta foto");
+        const url = document.getElementById('p-url').value.trim();
+        if(!url) return notify("⚠️ Ingresa el link de la foto");
+        
         const datos = {
             nombre: document.getElementById('p-nombre').value,
             precio: Number(document.getElementById('p-precio').value),
@@ -362,9 +339,11 @@
             categoria: document.getElementById('p-categoria').value,
             fecha: serverTimestamp()
         };
+        
         if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
         else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        notify("Guardado");
+        
+        notify("✅ Guardado correctamente");
         resetForm();
     };
 
@@ -375,7 +354,7 @@
             const p = d.data();
             lista.innerHTML += `
                 <div class="prod-card">
-                    <img src="${p.imagen}">
+                    <img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/50?text=Error'">
                     <div style="flex:1"><b style="font-size:12px;">${p.nombre}</b><br><small>$${p.precio}</small></div>
                     <button onclick="prepararEdit('${d.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
                     <button onclick="abrirModalDel('${d.id}')"><i class="fas fa-trash"></i></button>
