@@ -66,20 +66,11 @@
     <div class="modal-card">
         <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-            <p><b>📸 Fotos Profesionales:</b> Pega el link directo de tu imagen. Recomendamos que sean <b>CUADRADAS</b> para un diseño perfecto.</p>
-            <p><b>🔗 Enlaces:</b> Puedes usar servicios como ImgBB para obtener enlaces directos permanentes.</p>
-            <p><b>🔐 Límites:</b> El Plan Gratis permite <b>4 publicaciones</b>. Para más capacidad y analíticas, activa el Plan PRO.</p>
+            <p><b>📸 Fotos Perfectas:</b> Sube imagenes <b>CUADRADAS</b>.</p>
+            <p><b>🔗 Enlace Directo:</b> En ImgBB usa la opción "Enlace directo".</p>
+            <p><b>🔐 Bloqueo:</b> El Plan Gratis permite <b>4 publicaciones</b>.</p>
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
-    </div>
-</div>
-
-<div id="confirm-del-modal" class="modal-confirm">
-    <div class="modal-card">
-        <i class="fas fa-trash-alt" style="font-size: 40px; color: var(--rojo); margin-bottom: 10px;"></i>
-        <h3>¿Eliminar producto?</h3>
-        <button class="btn btn-naranja" id="confirm-yes" style="background: var(--rojo); margin-bottom: 10px;">BORRAR AHORA</button>
-        <button class="btn" style="background: var(--gris); color: var(--oscuro); padding: 10px;" onclick="cerrarModalDel()">CANCELAR</button>
     </div>
 </div>
 
@@ -91,84 +82,35 @@
         <div class="phone-group">
             <select id="log-country" class="country-select">
                 <option value="57" selected>🇨🇴 +57</option>
-                <option value="58">🇻🇪 +58</option>
+                <option value="58"> 🇻🇪 +58</option>
                 <option value="51">🇵🇪 +51</option>
-                <option value="52">🇲🇽 +52</option>
-                <option value="1">🇺🇸 +1</option>
             </select>
             <input type="number" id="log-wa" class="phone-input" placeholder="315...">
         </div>
         <label>Código</label><input type="password" id="log-code" maxlength="4">
         <button class="btn btn-naranja" onclick="login()">ENTRAR</button>
-        <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-register')">Registrar Nueva Tienda</button>
-    </div>
-</div>
-
-<div id="view-register" class="view">
-    <div class="card">
-        <h2>Nuevo Registro</h2>
-        <div class="profile-upload" style="position:relative; width:85px; margin:auto;">
-            <div class="profile-preview" id="reg-preview-box"><i class="fas fa-store" style="font-size: 25px; color: #ccc;"></i></div>
-            <label for="reg-foto-input" class="edit-icon"><i class="fas fa-camera"></i></label>
-            <input type="file" id="reg-foto-input" accept="image/*" style="display:none;">
-        </div>
-        <label>Nombre Tienda</label><input type="text" id="reg-tienda">
-        <label>WhatsApp</label>
-        <div class="phone-group">
-            <select id="reg-country" class="country-select">
-                <option value="57" selected>🇨🇴 +57</option>
-                <option value="58">🇻🇪 +58</option>
-                <option value="51">🇵🇪 +51</option>
-                <option value="52">🇲🇽 +52</option>
-                <option value="1">🇺🇸 +1</option>
-            </select>
-            <input type="number" id="reg-wa" class="phone-input" placeholder="315...">
-        </div>
-        <label>Código (4 dígitos)</label><input type="password" id="reg-code" maxlength="4">
-        <button class="btn btn-naranja" onclick="registrarSocio()">CREAR TIENDA</button>
-        <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-login')">Regresar al Login</button>
     </div>
 </div>
 
 <div id="view-vender" class="view">
     <div style="background: white; padding: 12px; border-radius: 20px; margin-bottom: 15px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="position: relative; width: 45px; height: 45px;">
-                    <div id="panel-logo-box" class="profile-preview" style="width:45px; height:45px; margin:0; border-width: 2px;">
-                        <i class="fas fa-store" style="color:#ccc; font-size: 15px;"></i>
-                    </div>
-                    <label for="panel-foto-input" class="edit-icon" style="width:18px; height:18px; font-size:8px;"><i class="fas fa-pencil-alt"></i></label>
-                    <input type="file" id="panel-foto-input" accept="image/*" style="display:none;">
-                </div>
+                <div id="panel-logo-box" class="profile-preview" style="width:45px; height:45px; margin:0;"></div>
                 <div>
-                    <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span> <i class="fas fa-check-circle" style="color:var(--azul); display:none;" id="header-verify"></i><br>
+                    <span id="header-tienda" style="font-weight:900; font-size:14px;">...</span><br>
                     <span id="plan-badge" class="badge-plan"></span>
                 </div>
             </div>
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
-        <button class="btn-share" onclick="copiarLinkTienda()">
+        <button class="btn-share" onclick="copiarLinkTienda()" style="margin-top:10px;">
             <i class="fas fa-copy"></i> COPIAR LINK DE MI TIENDA
         </button>
     </div>
 
-    <div id="stats-pro" class="stats-container">
-        <div class="stat-box"><span>Visitas</span><span id="stat-visitas">0</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat-box"><span>Interesados</span><span id="stat-clics">0</span></div>
-    </div>
-
-    <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
-        <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">⚠️ LÍMITE ALCANZADO (4/4)</p>
-        <p style="font-size: 10px; color: #666; margin: 5px 0 10px;">Pásate a PRO para agregar más productos y editar.</p>
-        <button class="btn btn-naranja" style="padding: 10px; font-size: 11px; background: var(--verde);" onclick="window.open('https://wa.me/573155445183?text=Hola,%20alcancé%20mi%20límite%20de%204%20productos')">
-            ACTIVAR PLAN PRO
-        </button>
-    </div>
-
     <div class="card" id="form-card">
-        <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
+        <h2 id="form-title" style="font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
         <label>Nombre del Producto</label><input type="text" id="p-nombre">
         <div style="display: flex; gap: 10px;">
@@ -177,12 +119,11 @@
         </div>
         <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
         <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
-        <label>Link Foto (Directo)</label><input type="text" id="p-url" placeholder="Pega el link de la imagen aquí">
+        <label>Link Foto (ImgBB)</label><input type="text" id="p-url">
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
     </div>
 
     <div id="inventario" style="margin-top: 25px;">
-        <h3 style="font-size:11px; text-align:center; font-weight:800; text-transform: uppercase;">Mis Productos</h3>
         <div id="lista-productos"></div>
     </div>
 </div>
@@ -203,56 +144,36 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
-    let idParaBorrar = null;
-    let fotoPerfilOptimizada = "";
-    let esPRO = false;
-    let totalProductos = 0;
-    let ultimaVisitaConocida = 0;
     const LIMITE_GRATIS = 4;
 
-    window.cerrarInstrucciones = () => { document.getElementById('modal-instrucciones').style.display = 'none'; localStorage.setItem('guiaLeida', 'true'); };
+    window.guardarProducto = async () => {
+        const idEdit = document.getElementById('edit-id').value;
+        const url = document.getElementById('p-url').value.trim();
+        if(!url) return notify("Falta link de foto");
+        
+        // CORRECCIÓN: Se agregan ambos campos 'tienda' y 'nombreTienda' para asegurar que aparezca en ver-tienda.html
+        const datos = {
+            nombre: document.getElementById('p-nombre').value,
+            precio: Number(document.getElementById('p-precio').value),
+            stock: Number(document.getElementById('p-stock').value),
+            descripcion: document.getElementById('p-desc').value,
+            imagen: url.split(',')[0], 
+            imagenes: url.split(','),
+            waVendedor: sesion.celular, 
+            nombreTienda: sesion.tienda, // Para el panel
+            tienda: sesion.tienda,       // Para el filtro de la tienda pública
+            categoria: document.getElementById('p-categoria').value,
+            fecha: serverTimestamp()
+        };
 
-    async function optimizarImagen(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (e) => {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    canvas.width = 300; canvas.height = 300;
-                    const min = Math.min(img.width, img.height);
-                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, 300, 300);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8));
-                };
-            };
-        });
-    }
-
-    document.getElementById('reg-foto-input').onchange = async (e) => {
-        if(!e.target.files[0]) return;
-        fotoPerfilOptimizada = await optimizarImagen(e.target.files[0]);
-        document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
-    };
-
-    document.getElementById('panel-foto-input').onchange = async (e) => {
-        if(!e.target.files[0]) return;
-        const foto = await optimizarImagen(e.target.files[0]);
-        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
-        snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Imagen actualizada"); });
-    };
-
-    window.registrarSocio = async () => {
-        const t = document.getElementById('reg-tienda').value.trim();
-        const country = document.getElementById('reg-country').value;
-        const wa = document.getElementById('reg-wa').value.trim();
-        const c = document.getElementById('reg-code').value.trim();
-        if(!t || !wa || !c) return notify("Faltan datos");
-        const fullWa = country + wa;
-        await addDoc(collection(db, "socios"), { nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0 });
-        sesion = { celular: fullWa, tienda: t };
-        localStorage.setItem('vendedorActual', JSON.stringify(sesion));
-        initPanel(true);
+        if(idEdit) {
+            await updateDoc(doc(db, "productos", idEdit), datos);
+        } else {
+            await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
+        }
+        
+        notify("¡Publicado con éxito!");
+        resetForm();
     };
 
     window.login = async () => {
@@ -260,166 +181,58 @@
         const wa = document.getElementById('log-wa').value.trim();
         const c = document.getElementById('log-code').value.trim();
         const fullWa = country + wa;
+        
         const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", fullWa)));
         let user = null;
         snap.forEach(d => { if(d.data().codigo == c) user = d.data(); });
+
         if(user) {
             sesion = { celular: fullWa, tienda: user.nombreTienda };
             localStorage.setItem('vendedorActual', JSON.stringify(sesion));
             initPanel();
-        } else notify("Error de acceso");
+        } else {
+            notify("Código o teléfono incorrecto");
+        }
     };
 
-    window.logout = () => { localStorage.clear(); window.location.reload(); };
+    function initPanel() {
+        switchView('view-vender');
+        onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
+            snap.forEach(doc => {
+                const d = doc.data();
+                document.getElementById('header-tienda').innerText = d.nombreTienda;
+                const badge = document.getElementById('plan-badge');
+                badge.innerText = d.plan === "pro" ? "SOCIO PRO" : "GRATIS";
+            });
+        });
+
+        onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
+            renderInventario(snap);
+        });
+    }
+
+    function renderInventario(snap) {
+        const lista = document.getElementById('lista-productos');
+        lista.innerHTML = '';
+        snap.forEach(d => {
+            const p = d.data();
+            lista.innerHTML += `
+                <div class="prod-card">
+                    <img src="${p.imagen}">
+                    <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
+                </div>`;
+        });
+    }
 
     window.copiarLinkTienda = () => {
         const url = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
         navigator.clipboard.writeText(url).then(() => notify("Link copiado"));
     };
 
-    function initPanel(forzarGuia = false) {
-        switchView('view-vender');
-        if(!localStorage.getItem('guiaLeida') || forzarGuia) document.getElementById('modal-instrucciones').style.display = 'flex';
-        onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
-            snap.forEach(doc => {
-                const d = doc.data();
-                esPRO = (d.plan === "pro");
-                document.getElementById('header-tienda').innerText = d.nombreTienda;
-                if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
-                const badge = document.getElementById('plan-badge');
-                const verify = document.getElementById('header-verify');
-                const statsBox = document.getElementById('stats-pro');
-                const visitasActuales = d.visitas || 0;
-                if (visitasActuales > ultimaVisitaConocida && ultimaVisitaConocida > 0) { notify("🔥 ¡Alguien entró a tu tienda!"); }
-                ultimaVisitaConocida = visitasActuales;
-                if(esPRO) {
-                    badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
-                    badge.className = "badge-plan pro-tag";
-                    verify.style.display = "inline-block";
-                    statsBox.style.display = "flex";
-                    document.getElementById('stat-visitas').innerText = visitasActuales;
-                    obtenerTotalClics();
-                } else {
-                    badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`;
-                    badge.className = "badge-plan gratis-tag";
-                    verify.style.display = "none";
-                    statsBox.style.display = "none";
-                }
-                bloquearSegunPlan();
-            });
-        });
-        onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
-            totalProductos = snap.size;
-            renderInventario(snap);
-            bloquearSegunPlan();
-            if(esPRO) obtenerTotalClics();
-        });
-    }
-
-    async function obtenerTotalClics() {
-        const q = query(collection(db, "productos"), where("waVendedor", "==", sesion.celular));
-        const snap = await getDocs(q);
-        let total = 0;
-        snap.forEach(doc => { total += (doc.data().clics || 0); });
-        document.getElementById('stat-clics').innerText = total;
-    }
-
-    function bloquearSegunPlan() {
-        const estaBloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS && !document.getElementById('edit-id').value);
-        const formCard = document.getElementById('form-card');
-        const msg = document.getElementById('mensaje-limite');
-        const btnMain = document.getElementById('btn-main');
-        if(estaBloqueado) {
-            msg.style.display = 'block';
-            formCard.classList.add('form-locked');
-            btnMain.disabled = true;
-            btnMain.style.background = "#ccc";
-            btnMain.innerText = "LÍMITE ALCANZADO";
-        } else {
-            msg.style.display = 'none';
-            formCard.classList.remove('form-locked');
-            btnMain.disabled = false;
-            btnMain.style.background = "var(--naranja)";
-            btnMain.innerText = document.getElementById('edit-id').value ? "GUARDAR CAMBIOS" : "GUARDAR PRODUCTO";
-        }
-    }
-
-    window.guardarProducto = async () => {
-        const idEdit = document.getElementById('edit-id').value;
-        const url = document.getElementById('p-url').value.trim();
-        if(!url) return notify("Falta link de foto");
-        const datos = {
-            nombre: document.getElementById('p-nombre').value,
-            precio: Number(document.getElementById('p-precio').value),
-            stock: Number(document.getElementById('p-stock').value),
-            descripcion: document.getElementById('p-desc').value,
-            imagen: url.split(',')[0], imagenes: url.split(','),
-            waVendedor: sesion.celular, nombreTienda: sesion.tienda,
-            categoria: document.getElementById('p-categoria').value,
-            fecha: serverTimestamp()
-        };
-        if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
-        else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        notify("Operación exitosa");
-        resetForm();
-    };
-
-    function renderInventario(snap) {
-        const lista = document.getElementById('lista-productos');
-        lista.innerHTML = '';
-        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS);
-        snap.forEach(d => {
-            const p = d.data();
-            const claseBloqueo = (bloqueado && !esPRO) ? 'disabled-action' : '';
-            lista.innerHTML += `
-                <div class="prod-card">
-                    <img src="${p.imagen}">
-                    <div style="flex:1"><b style="font-size:12px;">${p.nombre}</b><br><small style="color:var(--naranja); font-weight:800;">$${p.precio.toLocaleString()}</small></div>
-                    <button class="${claseBloqueo}" onclick="prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagenes.join(',')}', '${p.categoria}')" style="border:none; background:none; color:var(--azul); padding:10px;"><i class="fas fa-edit"></i></button>
-                    <button class="${claseBloqueo}" onclick="abrirModalDel('${d.id}')" style="border:none; background:none; color:var(--rojo); padding:10px;"><i class="fas fa-trash"></i></button>
-                </div>`;
-        });
-    }
-
-    window.prepararEdit = (id, n, p, s, d, imgs, cat) => {
-        document.getElementById('edit-id').value = id;
-        document.getElementById('p-nombre').value = n;
-        document.getElementById('p-precio').value = p;
-        document.getElementById('p-stock').value = s;
-        document.getElementById('p-desc').value = d;
-        document.getElementById('p-url').value = imgs;
-        document.getElementById('p-categoria').value = cat;
-        document.getElementById('form-title').innerText = "Editar Producto";
-        document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        bloquearSegunPlan();
-    };
-
-    window.abrirModalDel = (id) => { idParaBorrar = id; document.getElementById('confirm-del-modal').style.display = 'flex'; };
-    window.cerrarModalDel = () => { idParaBorrar = null; document.getElementById('confirm-del-modal').style.display = 'none'; };
-
-    document.getElementById('confirm-yes').onclick = async () => {
-        if(idParaBorrar) { await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); notify("Eliminado"); }
-    };
-
     window.notify = (text) => { const t = document.getElementById('toast'); t.innerText = text; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); };
     window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
-    
-    function resetForm() {
-        document.getElementById('edit-id').value = '';
-        document.getElementById('form-title').innerText = "Gestionar Producto";
-        document.getElementById('btn-main').innerText = "GUARDAR PRODUCTO";
-        document.querySelectorAll('#view-vender input, #view-vender textarea').forEach(i => i.value = '');
-        bloquearSegunPlan();
-    }
-
-    onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snap) => {
-        const sel = document.getElementById('p-categoria');
-        if(sel) {
-            sel.innerHTML = '<option value="Externo">Categoría...</option>';
-            snap.forEach(d => { sel.innerHTML += `<option value="${d.data().nombre}">${d.data().nombre}</option>`; });
-        }
-    });
+    window.logout = () => { localStorage.clear(); window.location.reload(); };
+    function resetForm() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); }
 
     if(sesion) initPanel(); else switchView('view-login');
 </script>
