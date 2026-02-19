@@ -43,7 +43,6 @@
         .pro-tag { background: var(--oro); color: var(--oscuro); box-shadow: 0 0 10px rgba(255, 177, 0, 0.4); }
         .bloqueo-pro { background: #fff5eb; border: 2px solid var(--naranja); padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 15px; }
         
-        .disabled-action { opacity: 0.2 !important; pointer-events: none !important; filter: grayscale(1); }
         .form-locked { opacity: 0.4; pointer-events: none; }
 
         .prod-card { background: white; padding: 10px; border-radius: 18px; margin-top: 10px; display: flex; gap: 12px; align-items: center; border: 1px solid #eee; }
@@ -64,11 +63,11 @@
 
 <div id="modal-instrucciones" class="modal-confirm">
     <div class="modal-card">
-        <h3 style="margin-top: 10px; font-size: 17px;">Guía de Usuario</h3>
+        <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-            <p><b>🔗 Link de Foto:</b> Pega el enlace directo de la imagen de tu producto.</p>
-            <p><b>📲 Link Corto:</b> Copia el enlace de tu tienda para compartir en redes.</p>
-            <p><b>🔐 Límites:</b> El Plan Gratis permite hasta 4 publicaciones.</p>
+            <p><b>🔗 Link de Foto:</b> Pega el enlace directo de tu imagen (ImgBB, Google, etc).</p>
+            <p><b>⚡ Link Corto:</b> El botón azul genera un link profesional para WhatsApp.</p>
+            <p><b>🔐 Límites:</b> Plan Gratis permite 4 productos.</p>
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
     </div>
@@ -142,14 +141,14 @@
                     <input type="file" id="panel-foto-input" accept="image/*" style="display:none;">
                 </div>
                 <div>
-                    <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span> <i class="fas fa-check-circle" style="color:var(--azul); display:none;" id="header-verify"></i><br>
+                    <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span><br>
                     <span id="plan-badge" class="badge-plan"></span>
                 </div>
             </div>
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
         <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-link"></i> COPIAR LINK DE MI TIENDA
+            <i class="fas fa-link"></i> COPIAR LINK CORTO (WhatsApp)
         </button>
     </div>
 
@@ -161,23 +160,22 @@
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
         <p style="font-size: 12px; font-weight: 800; color: var(--naranja); margin:0;">⚠️ LÍMITE ALCANZADO (4/4)</p>
-        <button class="btn btn-naranja" style="padding: 10px; font-size: 11px; margin-top: 5px; background: var(--verde);" onclick="window.open('https://wa.me/573155445183')">ACTIVAR PRO</button>
     </div>
 
     <div class="card" id="form-card">
         <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
-        <label>Nombre del Producto</label><input type="text" id="p-nombre" placeholder="Ej: Pizza Familiar">
+        <label>Nombre del Producto</label><input type="text" id="p-nombre">
         
         <label>Link de la Foto</label>
-        <input type="text" id="p-url" placeholder="https://ejemplo.com/foto.jpg">
+        <input type="text" id="p-url" placeholder="Pega el link de la foto aquí">
 
         <div style="display: flex; gap: 10px;">
             <div style="flex:1"><label>Precio</label><input type="number" id="p-precio"></div>
             <div style="flex:1"><label>Stock</label><input type="number" id="p-stock" value="10"></div>
         </div>
-        <label>Categoría</label><select id="p-categoria"><option value="Externo">Cargando...</option></select>
-        <label>Descripción</label><textarea id="p-desc" rows="2" placeholder="Detalles del producto..."></textarea>
+        <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
+        <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
         
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
     </div>
@@ -210,7 +208,6 @@
 
     window.cerrarInstrucciones = () => { document.getElementById('modal-instrucciones').style.display = 'none'; localStorage.setItem('guiaLeida', 'true'); };
 
-    // Función para procesar foto de perfil (se mantiene igual)
     async function optimizarImagen(file, size = 300) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -228,6 +225,7 @@
         });
     }
 
+    // REGISTRO Y PERFIL (BASE64 ORIGINAL)
     document.getElementById('reg-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
         const blob = await optimizarImagen(e.target.files[0], 300);
@@ -275,17 +273,24 @@
             sesion = { celular: fullWa, tienda: user.nombreTienda };
             localStorage.setItem('vendedorActual', JSON.stringify(sesion));
             initPanel();
-        } else notify("Datos incorrectos");
+        } else notify("Error de acceso");
     };
 
     window.logout = () => { localStorage.clear(); window.location.reload(); };
 
+    // FUNCIÓN LINK CORTO ORIGINAL (TINYURL)
     window.copiarLinkTienda = async () => {
         const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
+        notify("⏳ Acortando link...");
         try {
+            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
+            const shortUrl = await res.text();
+            await navigator.clipboard.writeText(shortUrl);
+            notify("✅ Link corto copiado!");
+        } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
-            notify("✅ Link copiado");
-        } catch (err) { notify("Error al copiar"); }
+            notify("✅ Link copiado (Original)");
+        }
     };
 
     function initPanel(forzarGuia = false) {
@@ -327,8 +332,7 @@
     window.guardarProducto = async () => {
         const idEdit = document.getElementById('edit-id').value;
         const url = document.getElementById('p-url').value.trim();
-        if(!url) return notify("⚠️ Ingresa el link de la foto");
-        
+        if(!url) return notify("Falta el link de la foto");
         const datos = {
             nombre: document.getElementById('p-nombre').value,
             precio: Number(document.getElementById('p-precio').value),
@@ -339,11 +343,9 @@
             categoria: document.getElementById('p-categoria').value,
             fecha: serverTimestamp()
         };
-        
         if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
         else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        
-        notify("✅ Guardado correctamente");
+        notify("Guardado");
         resetForm();
     };
 
@@ -354,7 +356,7 @@
             const p = d.data();
             lista.innerHTML += `
                 <div class="prod-card">
-                    <img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/50?text=Error'">
+                    <img src="${p.imagen}" onerror="this.src='https://img.icons8.com/fluency/48/image-not-found.png'">
                     <div style="flex:1"><b style="font-size:12px;">${p.nombre}</b><br><small>$${p.precio}</small></div>
                     <button onclick="prepararEdit('${d.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
                     <button onclick="abrirModalDel('${d.id}')"><i class="fas fa-trash"></i></button>
