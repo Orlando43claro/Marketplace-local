@@ -4,16 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tienda | YaMi</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/CRZNPpf/1770824892177.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
 :root{
 --naranja:#ff6b00;
---oscuro:#1e293b;
---gris:#f4f6f9;
+--oscuro:#232f3e;
+--gris:#f0f2f5;
 --azul:#2196f3;
 --oro:#d4af37;
---rojo:#dc2626;
+--rojo:#d91e18;
 }
 
 body{
@@ -33,7 +34,7 @@ align-items:center;
 position:fixed;
 top:0;
 width:100%;
-box-shadow:0 4px 20px rgba(0,0,0,.05);
+box-shadow:0 4px 15px rgba(0,0,0,.05);
 z-index:1000;
 }
 
@@ -42,8 +43,8 @@ background:none;
 border:none;
 font-size:18px;
 cursor:pointer;
-color:var(--oscuro);
 margin-right:10px;
+color:var(--oscuro);
 }
 
 .store-logo{
@@ -71,7 +72,7 @@ font-weight:700;
 }
 
 .badge-gratis{
-background:#ccc;
+background:#ddd;
 color:#333;
 font-size:11px;
 padding:4px 10px;
@@ -83,7 +84,7 @@ font-weight:700;
 
 /* GRID 2 COLUMNAS */
 .container{
-max-width:1000px;
+max-width:900px;
 margin:auto;
 padding:20px 15px;
 }
@@ -96,9 +97,9 @@ gap:15px;
 
 .card{
 background:white;
-border-radius:18px;
+border-radius:20px;
 overflow:hidden;
-box-shadow:0 6px 20px rgba(0,0,0,.05);
+box-shadow:0 4px 15px rgba(0,0,0,.05);
 }
 
 .card img{
@@ -108,7 +109,7 @@ object-fit:cover;
 }
 
 .card-body{
-padding:10px;
+padding:12px;
 }
 
 .p-name{
@@ -247,7 +248,7 @@ font-weight:bold;
 
 <img id="logo-img" class="store-logo" src="">
 <div>
-<div id="store-name" class="store-name">Cargando...</div>
+<div id="store-name" class="store-name">Cargando tienda...</div>
 <div id="badge-container"></div>
 </div>
 </div>
@@ -282,22 +283,25 @@ Preguntar por WhatsApp
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig={
-apiKey:"TU_API_KEY",
-authDomain:"TU_AUTH_DOMAIN",
-projectId:"TU_PROJECT_ID"
+/* 🔥 TU FIREBASE ORIGINAL INTACTO */
+const firebaseConfig = {
+    apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
+    authDomain: "express-market-868d9.firebaseapp.com",
+    projectId: "express-market-868d9",
+    storageBucket: "express-market-868d9.firebasestorage.app",
+    messagingSenderId: "502987186701",
+    appId: "1:502987186701:web:9fb3c28ce377fb27552b44"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-const urlParams=new URLSearchParams(window.location.search);
-const storeId=urlParams.get('id');
-
-let cart=[];
-let storeData=null;
+const urlParams = new URLSearchParams(window.location.search);
+const storeId = urlParams.get('id');
+let cart = [];
+let storeData = null;
 
 function toast(text){
 const t=document.getElementById('toast');
@@ -306,16 +310,22 @@ t.style.display='block';
 setTimeout(()=>t.style.display='none',2000);
 }
 
-async function start(){
-if(!storeId) return;
+async function start() {
+if (!storeId) return;
 
-const qSocio=query(collection(db,"socios"),where("celular","==",storeId));
-const snapSocio=await getDocs(qSocio);
+/* SOCIO */
+const qSocio = query(collection(db,"socios"), where("celular","==",storeId));
+const snapSocio = await getDocs(qSocio);
 
-if(!snapSocio.empty){
-storeData=snapSocio.docs[0].data();
-document.getElementById('store-name').innerText=storeData.nombreTienda;
-document.getElementById('logo-img').src=storeData.fotoPerfil||'https://via.placeholder.com/50';
+if (!snapSocio.empty) {
+const docSocio = snapSocio.docs[0];
+storeData = docSocio.data();
+
+document.getElementById('store-name').innerText = storeData.nombreTienda;
+document.getElementById('logo-img').src = storeData.fotoPerfil || 'https://via.placeholder.com/50';
+
+/* SUMAR VISITA (original tuyo) */
+await updateDoc(doc(db,"socios",docSocio.id), { visitas: increment(1) });
 
 if(storeData.plan==="pro"){
 document.getElementById('badge-container').innerHTML=
@@ -329,15 +339,17 @@ document.getElementById('badge-container').innerHTML=
 }
 }
 
-const qProd=query(collection(db,"productos"),where("waVendedor","==",storeId));
-const snapProd=await getDocs(qProd);
-const grid=document.getElementById('productos-grid');
+/* PRODUCTOS */
+const qProd = query(collection(db,"productos"), where("waVendedor","==",storeId));
+const snapProd = await getDocs(qProd);
+const grid = document.getElementById('productos-grid');
+grid.innerHTML='';
 
 snapProd.forEach(d=>{
 const p=d.data();
 grid.innerHTML+=`
 <div class="card">
-<img src="${p.imagen}">
+<img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/150'">
 <div class="card-body">
 <div class="p-name">${p.nombre}</div>
 <div class="p-price">$${Number(p.precio).toLocaleString()}</div>
@@ -407,9 +419,9 @@ updateCart();
 };
 
 window.enviarPedido=()=>{
-let mensaje=`*Consulta desde YaMi - ${storeData.nombreTienda}*%0A%0A`;
+let mensaje=`*Consulta desde YaMi - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
 cart.forEach(i=>{
-mensaje+=`• ${i.nombre} ($${i.precio})%0A`;
+mensaje+=`• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`;
 });
 mensaje+=`%0A`;
 const pregunta=document.getElementById('pregunta').value;
