@@ -57,6 +57,11 @@
         .stat-box span:first-child { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
         .stat-box span:last-child { font-size: 18px; font-weight: 900; color: var(--oscuro); }
         .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
+
+        /* DISEÑO DE CÁMARA PARA PRODUCTO */
+        .prod-cam-box { display: flex; align-items: center; gap: 12px; background: #fffcf9; padding: 12px; border-radius: 18px; border: 1.5px dashed var(--naranja); margin: 10px 0; cursor: pointer; }
+        .cam-btn-icon { width: 45px; height: 45px; background: var(--naranja); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .loader-cam { display: none; position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.5); border-radius: 12px; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -67,10 +72,10 @@
     <div class="modal-card">
         <h3 style="margin-top: 10px; font-size: 17px;">Guía de Uso Profesional</h3>
         <div style="text-align: left; font-size: 11px; color: #4b5563; line-height: 1.5; margin: 15px 0;">
-            <p><b>📸 Fotos Perfectas:</b> Sube imagenes <b>CUADRADAS</b>. Esto garantiza que tu catalogo se vea organizado y profesional.</p>
-            <p><b>🔗 Enlace Directo:</b> En ImgBB usa la opción "Enlace directo" para que la foto cargue instantaneamente.</p>
-            <p><b>🔐 Bloqueo de Seguridad:</b> El Plan Gratis permite <b>4 publicaciones</b>. Al llegar al lImite, las opciones de <u>editar y borrar</u> se bloquean para proteger la integridad del sistema verificado.</p>
-            <p><b>👑 Socio PRO:</b> Ser PRO te permite publicaciones ilimitadas y soporte prioritario para tu tienda.</p>
+            <p><b>📸 Fotos Perfectas:</b> Ahora las fotos se optimizan solas al tocarlas.</p>
+            <p><b>🔗 Enlace Directo:</b> Ya no necesitas ImgBB, usamos tu propio servidor seguro.</p>
+            <p><b>🔐 Bloqueo de Seguridad:</b> El Plan Gratis permite <b>4 publicaciones</b>.</p>
+            <p><b>👑 Socio PRO:</b> Ser PRO te permite publicaciones ilimitadas y ver estadísticas.</p>
         </div>
         <button class="btn btn-naranja" onclick="cerrarInstrucciones()">ENTENDIDO</button>
     </div>
@@ -151,7 +156,7 @@
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
         <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-copy"></i> COPIAR LINK DE MI TIENDA
+            <i class="fas fa-link"></i> COPIAR LINK CORTO (WhatsApp)
         </button>
     </div>
 
@@ -179,13 +184,28 @@
         <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
         <label>Nombre del Producto</label><input type="text" id="p-nombre">
+        
+        <label>Foto del Producto</label>
+        <div class="prod-cam-box" onclick="document.getElementById('input-foto-prod').click()">
+            <div class="cam-btn-icon">
+                <i class="fas fa-camera"></i>
+                <div id="loader-cam-prod" class="loader-cam"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+            <div>
+                <p style="margin:0; font-size:11px; font-weight:bold; color:var(--naranja);">TOCA LA CÁMARA</p>
+                <p style="margin:0; font-size:9px; color:#64748b;">La imagen se cargará automáticamente.</p>
+            </div>
+        </div>
+        <input type="file" id="input-foto-prod" accept="image/*" style="display:none;">
+
         <div style="display: flex; gap: 10px;">
             <div style="flex:1"><label>Precio</label><input type="number" id="p-precio"></div>
             <div style="flex:1"><label>Stock</label><input type="number" id="p-stock"></div>
         </div>
         <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
         <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
-        <label>Link Foto (ImgBB)</label><input type="text" id="p-url">
+        <label>Link Foto (Auto-completado)</label><input type="text" id="p-url" readonly placeholder="Esperando imagen...">
+        
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
     </div>
 
@@ -198,6 +218,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -210,17 +231,20 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+    
     let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
     let idParaBorrar = null;
     let fotoPerfilOptimizada = "";
     let esPRO = false;
     let totalProductos = 0;
-    let ultimaVisitaConocida = 0; // Para notificaciones en tiempo real
+    let ultimaVisitaConocida = 0;
     const LIMITE_GRATIS = 4;
 
     window.cerrarInstrucciones = () => { document.getElementById('modal-instrucciones').style.display = 'none'; localStorage.setItem('guiaLeida', 'true'); };
 
-    async function optimizarImagen(file) {
+    // FUNCIÓN DE COMPRESIÓN UNIFICADA (Igual a la de perfil)
+    async function optimizarImagen(file, size = 600) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -228,26 +252,54 @@
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    canvas.width = 300; canvas.height = 300;
+                    canvas.width = size; canvas.height = size;
                     const min = Math.min(img.width, img.height);
-                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, 300, 300);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, size, size);
+                    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.8);
                 };
             };
         });
     }
 
+    // SUBIDA DE FOTO DE PRODUCTO
+    document.getElementById('input-foto-prod').onchange = async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const loader = document.getElementById('loader-cam-prod');
+        loader.style.display = 'flex';
+        try {
+            const blob = await optimizarImagen(file, 800);
+            const storageRef = ref(storage, 'productos/' + Date.now() + '.jpg');
+            await uploadBytes(storageRef, blob);
+            const url = await getDownloadURL(storageRef);
+            document.getElementById('p-url').value = url;
+            notify("✅ Foto cargada correctamente");
+        } catch (err) {
+            notify("❌ Error al subir foto");
+        } finally { loader.style.display = 'none'; }
+    };
+
     document.getElementById('reg-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
-        fotoPerfilOptimizada = await optimizarImagen(e.target.files[0]);
-        document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
+        const blob = await optimizarImagen(e.target.files[0], 300);
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            fotoPerfilOptimizada = reader.result;
+            document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
+        };
     };
 
     document.getElementById('panel-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
-        const foto = await optimizarImagen(e.target.files[0]);
-        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
-        snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Imagen actualizada"); });
+        const blob = await optimizarImagen(e.target.files[0], 300);
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+            const foto = reader.result;
+            const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
+            snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Imagen actualizada"); });
+        };
     };
 
     window.registrarSocio = async () => {
@@ -256,7 +308,6 @@
         const wa = document.getElementById('reg-wa').value.trim();
         const c = document.getElementById('reg-code').value.trim();
         if(!t || !wa || !c) return notify("Faltan datos");
-        
         const fullWa = country + wa;
         await addDoc(collection(db, "socios"), { nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0 });
         sesion = { celular: fullWa, tienda: t };
@@ -269,7 +320,6 @@
         const wa = document.getElementById('log-wa').value.trim();
         const c = document.getElementById('log-code').value.trim();
         const fullWa = country + wa;
-        
         const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", fullWa)));
         let user = null;
         snap.forEach(d => { if(d.data().codigo == c) user = d.data(); });
@@ -282,33 +332,36 @@
 
     window.logout = () => { localStorage.clear(); window.location.reload(); };
 
-    window.copiarLinkTienda = () => {
-        const url = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
-        navigator.clipboard.writeText(url).then(() => notify("Link copiado"));
+    // FUNCIÓN DE LINK CORTO ACTUALIZADA
+    window.copiarLinkTienda = async () => {
+        const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
+        notify("⏳ Copiando link...");
+        try {
+            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
+            const shortUrl = await res.text();
+            await navigator.clipboard.writeText(shortUrl);
+            notify("✅ Link copiado!");
+        } catch (err) {
+            await navigator.clipboard.writeText(urlLarga);
+            notify("✅ Link copiado (Original)");
+        }
     };
 
     function initPanel(forzarGuia = false) {
         switchView('view-vender');
         if(!localStorage.getItem('guiaLeida') || forzarGuia) document.getElementById('modal-instrucciones').style.display = 'flex';
-
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
                 esPRO = (d.plan === "pro");
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
-                
                 const badge = document.getElementById('plan-badge');
                 const verify = document.getElementById('header-verify');
                 const statsBox = document.getElementById('stats-pro');
-
-                // Lógica de Notificación de Visita en Tiempo Real
                 const visitasActuales = d.visitas || 0;
-                if (visitasActuales > ultimaVisitaConocida && ultimaVisitaConocida > 0) {
-                    notify("🔥 ¡Alguien entró a tu tienda!");
-                }
+                if (visitasActuales > ultimaVisitaConocida && ultimaVisitaConocida > 0) notify("🔥 ¡Alguien entró a tu tienda!");
                 ultimaVisitaConocida = visitasActuales;
-
                 if(esPRO) {
                     badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
                     badge.className = "badge-plan pro-tag";
@@ -325,12 +378,10 @@
                 bloquearSegunPlan();
             });
         });
-
         onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
             totalProductos = snap.size;
             renderInventario(snap);
             bloquearSegunPlan();
-            if(esPRO) obtenerTotalClics();
         });
     }
 
@@ -347,7 +398,6 @@
         const formCard = document.getElementById('form-card');
         const msg = document.getElementById('mensaje-limite');
         const btnMain = document.getElementById('btn-main');
-
         if(estaBloqueado) {
             msg.style.display = 'block';
             formCard.classList.add('form-locked');
@@ -366,24 +416,21 @@
     window.guardarProducto = async () => {
         const idEdit = document.getElementById('edit-id').value;
         if(!esPRO && totalProductos >= LIMITE_GRATIS && !idEdit) return notify("Bloqueado: Pásate a PRO");
-
         const url = document.getElementById('p-url').value.trim();
-        if(!url) return notify("Falta link de foto");
-        
+        if(!url) return notify("Falta foto del producto");
         const datos = {
             nombre: document.getElementById('p-nombre').value,
             precio: Number(document.getElementById('p-precio').value),
             stock: Number(document.getElementById('p-stock').value),
             descripcion: document.getElementById('p-desc').value,
-            imagen: url.split(',')[0], imagenes: url.split(','),
+            imagen: url,
+            imagenes: [url],
             waVendedor: sesion.celular, nombreTienda: sesion.tienda,
             categoria: document.getElementById('p-categoria').value,
             fecha: serverTimestamp()
         };
-
         if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
         else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        
         notify("Operación exitosa");
         resetForm();
     };
@@ -392,10 +439,9 @@
         const lista = document.getElementById('lista-productos');
         lista.innerHTML = '';
         const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS);
-        
         snap.forEach(d => {
             const p = d.data();
-            const claseBloqueo = bloqueado ? 'disabled-action' : '';
+            const claseBloqueo = (bloqueado && !esPRO) ? 'disabled-action' : '';
             lista.innerHTML += `
                 <div class="prod-card">
                     <img src="${p.imagen}">
@@ -403,20 +449,19 @@
                         <b style="font-size:12px;">${p.nombre}</b><br>
                         <small style="color:var(--naranja); font-weight:800;">$${p.precio.toLocaleString()}</small>
                     </div>
-                    <button class="${claseBloqueo}" onclick="prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagenes.join(',')}', '${p.categoria}')" style="border:none; background:none; color:var(--azul); padding:10px;"><i class="fas fa-edit"></i></button>
+                    <button class="${claseBloqueo}" onclick="prepararEdit('${d.id}', '${p.nombre}', ${p.precio}, ${p.stock}, '${p.descripcion}', '${p.imagen}', '${p.categoria}')" style="border:none; background:none; color:var(--azul); padding:10px;"><i class="fas fa-edit"></i></button>
                     <button class="${claseBloqueo}" onclick="abrirModalDel('${d.id}')" style="border:none; background:none; color:var(--rojo); padding:10px;"><i class="fas fa-trash"></i></button>
                 </div>`;
         });
     }
 
-    window.prepararEdit = (id, n, p, s, d, imgs, cat) => {
-        if(!esPRO && totalProductos >= LIMITE_GRATIS) return notify("Bloqueado: Pásate a PRO");
+    window.prepararEdit = (id, n, p, s, d, img, cat) => {
         document.getElementById('edit-id').value = id;
         document.getElementById('p-nombre').value = n;
         document.getElementById('p-precio').value = p;
         document.getElementById('p-stock').value = s;
         document.getElementById('p-desc').value = d;
-        document.getElementById('p-url').value = imgs;
+        document.getElementById('p-url').value = img;
         document.getElementById('p-categoria').value = cat;
         document.getElementById('form-title').innerText = "Editar Producto";
         document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
@@ -424,7 +469,6 @@
     };
 
     window.abrirModalDel = (id) => { 
-        if(!esPRO && totalProductos >= LIMITE_GRATIS) return notify("Bloqueado: Pásate a PRO");
         idParaBorrar = id; 
         document.getElementById('confirm-del-modal').style.display = 'flex'; 
     };
