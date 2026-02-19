@@ -53,13 +53,13 @@
         .price { font-size: 16px; font-weight: 800; color: var(--rojo); margin: 5px 0; display: block; }
 
         .card-action { padding: 0 8px 12px; }
-        .btn-add-ask { background: var(--oscuro); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.3s; }
+        .btn-add-ask { background: var(--oscuro); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* ESTILO BOTÓN BLOQUEADO */
+        /* ESTILO DE BLOQUEO */
         .shop-blocked { 
             background: #95a5a6 !important; 
             pointer-events: none !important; 
-            opacity: 0.5 !important; 
+            opacity: 0.6 !important; 
             filter: grayscale(1);
         }
 
@@ -79,14 +79,11 @@
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f2f2f2; font-size: 14px; }
         textarea { width: 100%; height: 70px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; resize: none; box-sizing: border-box; }
         .btn-send-wa { background: var(--verde); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
-        #toast { position: fixed; top: 85px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; z-index: 5000; font-weight: bold; font-size: 12px; border-left: 4px solid var(--naranja); }
     </style>
 </head>
 <body>
 
-<div id="bloqueo-aviso"><i class="fas fa-lock"></i> TIENDA EN PAUSA POR LÍMITE DE PRODUCTOS</div>
-<div id="toast"></div>
+<div id="bloqueo-aviso"><i class="fas fa-lock"></i> TIENDA EN PAUSA POR SUSCRIPCIÓN</div>
 
 <div class="store-header">
     <div class="header-content">
@@ -161,7 +158,6 @@
     async function start() {
         if (!storeId) return;
         
-        // 1. CARGAR DATOS DE SOCIO
         const qSocio = query(collection(db, "socios"), where("celular", "==", storeId));
         const snapSocio = await getDocs(qSocio);
         
@@ -179,7 +175,6 @@
         
         await updateDoc(doc(db, "socios", docRef.id), { visitas: increment(1) });
 
-        // 2. CARGAR PRODUCTOS Y APLICAR BLOQUEO
         const qProd = query(collection(db, "productos"), where("waVendedor", "==", storeId));
         onSnapshot(qProd, (snapshot) => {
             const grid = document.getElementById('products-grid');
@@ -187,11 +182,11 @@
             let prods = [];
             snapshot.forEach(d => prods.push({id: d.id, ...d.data()}));
 
-            // LÓGICA DE BLOQUEO: Si es gratis y tiene más de 4 productos
-            if (storeData.plan === 'gratis' && prods.length > 4) {
+            // LÓGICA DE BLOQUEO ACTUALIZADA: prods.length >= 4
+            if (storeData.plan === 'gratis' && prods.length >= 4) {
                 isBlocked = true;
                 document.getElementById('bloqueo-aviso').style.display = 'block';
-                document.getElementById('cart-btn').style.display = 'none'; // Oculta carrito flotante
+                document.getElementById('cart-btn').style.display = 'none';
                 document.getElementById('add-to-cart-modal').classList.add('shop-blocked');
                 document.getElementById('final-send-btn').classList.add('shop-blocked');
             } else {
@@ -211,7 +206,6 @@
                     card.className = 'card';
                     const pData = btoa(unescape(encodeURIComponent(JSON.stringify(p)))); 
                     const blockClass = isBlocked ? 'shop-blocked' : '';
-                    
                     card.innerHTML = `
                         <div class="image-container" onclick="openDetail('${pData}')"><img src="${p.imagen}"></div>
                         <div class="info" onclick="openDetail('${pData}')">
@@ -242,16 +236,13 @@
     }
 
     window.addToCartDirect = (encodedData, btn) => {
-        if(isBlocked) return; // Evita acción si está bloqueado
+        if(isBlocked) return;
         const p = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
         cart.push(p);
         updateCartUI();
         btn.innerText = "¡AÑADIDO!";
         btn.style.background = "#25d366";
-        setTimeout(() => { 
-            btn.innerText = "AÑADIR PARA PREGUNTAR"; 
-            btn.style.background = "#232f3e"; 
-        }, 800);
+        setTimeout(() => { btn.innerText = "AÑADIR PARA PREGUNTAR"; btn.style.background = "#232f3e"; }, 800);
     }
 
     window.closeModal = () => document.getElementById('product-modal').style.display = 'none';
@@ -270,21 +261,13 @@
         let total = 0;
         cart.forEach((item, i) => {
             total += Number(item.precio);
-            list.innerHTML += `
-                <div class="cart-item">
-                    <span>${item.nombre}</span>
-                    <b>$${Number(item.precio).toLocaleString()} <i class="fas fa-trash" onclick="remove(${i})" style="margin-left:12px; color:var(--rojo); cursor:pointer"></i></b>
-                </div>`;
+            list.innerHTML += `<div class="cart-item"><span>${item.nombre}</span><b>$${Number(item.precio).toLocaleString()} <i class="fas fa-trash" onclick="remove(${i})" style="margin-left:12px; color:var(--rojo); cursor:pointer"></i></b></div>`;
         });
         document.getElementById('cart-total').innerText = `Total: $${total.toLocaleString()}`;
     }
 
     window.remove = (i) => { cart.splice(i,1); updateCartUI(); }
-    
-    window.toggleCart = (s) => { 
-        if(isBlocked && s) return; // No abre el carrito si está bloqueado
-        document.getElementById('cart-panel').style.display = s ? 'flex' : 'none'; 
-    }
+    window.toggleCart = (s) => { if(isBlocked && s) return; document.getElementById('cart-panel').style.display = s ? 'flex' : 'none'; }
 
     window.sendOrder = () => {
         if(isBlocked || cart.length === 0) return;
@@ -295,13 +278,6 @@
         if(n) m += `%0A*Nota:* ${n}%0A`;
         m += `%0A*TOTAL A PAGAR: $${t.toLocaleString()}*%0A%0A_¿Están disponibles?_`;
         window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
-    }
-
-    function notify(text) {
-        const t = document.getElementById('toast');
-        t.innerText = text;
-        t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2000);
     }
 
     start();
