@@ -29,7 +29,10 @@
         .logo-box { display: flex; align-items: center; gap: 12px; }
         .logo-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--naranja); background: #eee; }
         .logo-text h1 { margin: 0; font-size: 16px; color: var(--oscuro); font-weight: 900; }
-        .logo-text span { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* ESTILO VERIFICADO PRO */
+        .verificado-pro { font-size: 10px; color: var(--oro); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; }
+        .chulito-azul { color: #0095f6; font-size: 11px; }
 
         .cart-icon { position: relative; background: var(--oscuro); color: white; width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.3s; }
         .cart-count { position: absolute; top: -5px; right: -5px; background: var(--naranja); color: white; font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
@@ -48,6 +51,7 @@
         .product-name { font-size: 13px; font-weight: 700; color: var(--oscuro); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 34px; }
         .product-price { color: var(--naranja); font-weight: 900; font-size: 15px; margin-bottom: 10px; display: block; }
         .add-btn { width: 100%; background: var(--oscuro); color: white; border: none; padding: 10px; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-bloqueado { background: #cbd5e1 !important; cursor: not-allowed !important; }
 
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 15px; box-sizing: border-box; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; overflow: hidden; animation: slideUp 0.3s ease; position: relative; max-height: 90vh; overflow-y: auto; }
@@ -62,19 +66,25 @@
         .cart-item img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
         .order-btn { background: var(--verde); color: white; width: 100%; border: none; padding: 16px; border-radius: 18px; font-size: 15px; font-weight: 800; margin-top: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; color: var(--oscuro); padding: 12px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; display: none; font-weight: bold; font-size: 13px; border-left: 5px solid var(--naranja); white-space: nowrap; }
+
         #btn-flotante-w { position: fixed; bottom: 20px; right: 20px; background: var(--verde); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 8px 25px rgba(37,211,102,0.4); cursor: pointer; z-index: 999; }
     </style>
 </head>
 <body>
 
-<div id="bloqueo-aviso">⚠️ ESTA TIENDA ESTÁ EN PAUSA TEMPORAL</div>
+<div id="toast"></div>
+<div id="bloqueo-aviso">⚠️ ESTA TIENDA HA SUPERADO EL LÍMITE DE PRODUCTOS</div>
 
 <header>
     <div class="logo-box">
         <img id="logo-tienda" src="" class="logo-img">
         <div class="logo-text">
             <h1 id="nombre-tienda">Cargando...</h1>
-            <span>Tienda Verificada</span>
+            <div class="verificado-pro" id="pro-badge" style="display:none;">
+                Socio Pro <i class="fas fa-check-circle chulito-azul"></i>
+            </div>
+            <span id="gratis-badge" style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Tienda Verificada</span>
         </div>
     </div>
     <div class="cart-icon" onclick="toggleCart()">
@@ -99,7 +109,7 @@
             <span id="m-precio" style="color:var(--naranja); font-weight:900; font-size:24px; display:block; margin:10px 0;"></span>
             <p id="m-desc" style="color:#64748b; font-size:14px; line-height:1.6; margin-bottom:25px;"></p>
             <button class="order-btn" id="add-to-cart-modal" style="background:var(--oscuro);">
-                <i class="fas fa-plus"></i> AÑADIR AL PEDIDO
+                <i class="fas fa-plus"></i> AÑADIR A LISTA
             </button>
         </div>
     </div>
@@ -107,7 +117,7 @@
 
 <div id="cart-panel" class="cart-panel">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2 style="margin:0; font-size:20px;">Mi Pedido</h2>
+        <h2 style="margin:0; font-size:20px;">Mi Lista</h2>
         <i class="fas fa-times" onclick="toggleCart()" style="font-size:20px; cursor:pointer;"></i>
     </div>
     <div id="cart-items"></div>
@@ -119,7 +129,7 @@
         <label style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Notas adicionales:</label>
         <textarea id="order-notes" style="width:100%; border:1.5px solid #edf2f7; border-radius:12px; padding:12px; margin-top:5px; font-family:inherit;" placeholder="Talla, color o dirección..."></textarea>
         <button class="order-btn" onclick="sendOrder()">
-            <i class="fab fa-whatsapp"></i> ENVIAR PEDIDO POR WHATSAPP
+            <i class="fab fa-whatsapp"></i> PREGUNTAR POR WHATSAPP
         </button>
     </div>
 </div>
@@ -148,9 +158,16 @@
     let cart = [];
     let storeDocId = null;
     let storeData = null;
-    let isBlocked = false;
+    let limitBlocked = false;
     let currentProduct = null;
-    let clicsBloqueados = false; // Cerrojo para evitar incremento doble
+    let clicsBloqueados = false;
+
+    window.notify = (text) => {
+        const t = document.getElementById('toast');
+        t.innerText = text;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    };
 
     async function start() {
         if(!storeId) return;
@@ -160,14 +177,17 @@
         if(!snap.empty) {
             storeDocId = snap.docs[0].id;
             storeData = snap.docs[0].data();
-            isBlocked = (storeData.plan === "gratis" && storeData.bloqueado);
             
+            // Diseño Pro vs Gratis
+            if(storeData.plan === "pro") {
+                document.getElementById('pro-badge').style.display = 'flex';
+                document.getElementById('gratis-badge').style.display = 'none';
+            }
+
             document.getElementById('nombre-tienda').innerText = storeData.nombreTienda;
             document.getElementById('logo-tienda').src = storeData.fotoPerfil || '';
             document.getElementById('btn-flotante-w').href = `https://wa.me/${storeId}`;
             
-            if(isBlocked) document.getElementById('bloqueo-aviso').style.display = 'block';
-
             await updateDoc(doc(db, "socios", storeDocId), { visitas: increment(1) });
 
             loadProducts();
@@ -190,6 +210,11 @@
         onSnapshot(q, (snap) => {
             allProducts = [];
             snap.forEach(d => allProducts.push({id: d.id, ...d.data()}));
+            
+            // Lógica de Bloqueo por Límite (4 productos para Plan Gratis)
+            limitBlocked = (storeData.plan === "gratis" && allProducts.length >= 4);
+            if(limitBlocked) document.getElementById('bloqueo-aviso').style.display = 'block';
+            
             renderProducts(allProducts);
         });
     }
@@ -199,13 +224,16 @@
         grid.innerHTML = '';
         arr.forEach(p => {
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+            const btnClass = limitBlocked ? 'add-btn btn-bloqueado' : 'add-btn';
+            const btnAction = limitBlocked ? '' : `onclick="addToCartDirect('${encoded}', this)"`;
+            
             grid.innerHTML += `
-                <div class="product-card" style="${isBlocked ? 'filter:grayscale(1); pointer-events:none;' : ''}">
+                <div class="product-card">
                     <img src="${p.imagen}" class="product-img" onclick="openModal('${encoded}')">
                     <div class="product-info">
                         <span class="product-name">${p.nombre}</span>
                         <span class="product-price">$${Number(p.precio).toLocaleString()}</span>
-                        <button class="add-btn" onclick="addToCartDirect('${encoded}', this)">AÑADIR AL PEDIDO</button>
+                        <button class="${btnClass}" ${btnAction}>AÑADIR A LISTA</button>
                     </div>
                 </div>`;
         });
@@ -225,16 +253,28 @@
         document.getElementById('m-nombre').innerText = p.nombre;
         document.getElementById('m-precio').innerText = `$${Number(p.precio).toLocaleString()}`;
         document.getElementById('m-desc').innerText = p.descripcion || '';
+        
+        const mBtn = document.getElementById('add-to-cart-modal');
+        if(limitBlocked) { mBtn.classList.add('btn-bloqueado'); mBtn.disabled = true; }
+        else { mBtn.classList.remove('btn-bloqueado'); mBtn.disabled = false; }
+        
         document.getElementById('modal-product').style.display = 'flex';
     }
 
     window.closeModal = () => document.getElementById('modal-product').style.display = 'none';
 
     window.addToCartDirect = async (encodedData, btn) => {
-        if(isBlocked || clicsBloqueados) return;
-        clicsBloqueados = true;
+        if(limitBlocked || clicsBloqueados) return;
 
         const p = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
+        
+        // Validar si ya existe en la lista
+        if(cart.some(item => item.id === p.id)) {
+            notify("El producto ya se encuentra en la lista");
+            return;
+        }
+
+        clicsBloqueados = true;
         cart.push(p);
         updateCartUI();
 
@@ -248,16 +288,21 @@
         btn.style.background = "#25d366";
         
         setTimeout(() => { 
-            btn.innerText = "AÑADIR AL PEDIDO"; 
+            btn.innerText = "AÑADIR A LISTA"; 
             btn.style.background = "#232f3e"; 
             clicsBloqueados = false; 
         }, 2000);
     }
 
     document.getElementById('add-to-cart-modal').onclick = async () => {
-        if(isBlocked || clicsBloqueados) return;
-        clicsBloqueados = true;
+        if(limitBlocked || clicsBloqueados) return;
+        
+        if(cart.some(item => item.id === currentProduct.id)) {
+            notify("El producto ya se encuentra en la lista");
+            return;
+        }
 
+        clicsBloqueados = true;
         cart.push(currentProduct);
         updateCartUI();
         
@@ -293,7 +338,7 @@
     window.toggleCart = () => document.getElementById('cart-panel').classList.toggle('active');
 
     window.sendOrder = async () => {
-        if(isBlocked || cart.length === 0) return;
+        if(limitBlocked || cart.length === 0) return;
 
         let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
         let t = 0;
@@ -304,7 +349,6 @@
         
         window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
 
-        // BORRAR CARRITO DESPUÉS DE ENVIAR
         cart = [];
         updateCartUI();
         toggleCart();
