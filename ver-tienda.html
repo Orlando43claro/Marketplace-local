@@ -30,9 +30,11 @@
         .logo-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--naranja); background: #eee; }
         .logo-text h1 { margin: 0; font-size: 16px; color: var(--oscuro); font-weight: 900; }
         
-        /* ESTILO VERIFICADO PRO */
-        .verificado-pro { font-size: 10px; color: var(--oro); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; }
+        /* ESTILOS DE BADGES */
+        .badge-status { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .verificado-pro { color: var(--oro); display: flex; align-items: center; gap: 4px; }
         .chulito-azul { color: #0095f6; font-size: 11px; }
+        .socio-vendedor { color: #64748b; }
 
         .cart-icon { position: relative; background: var(--oscuro); color: white; width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.3s; }
         .cart-count { position: absolute; top: -5px; right: -5px; background: var(--naranja); color: white; font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
@@ -51,7 +53,7 @@
         .product-name { font-size: 13px; font-weight: 700; color: var(--oscuro); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 34px; }
         .product-price { color: var(--naranja); font-weight: 900; font-size: 15px; margin-bottom: 10px; display: block; }
         .add-btn { width: 100%; background: var(--oscuro); color: white; border: none; padding: 10px; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.3s; }
-        .btn-bloqueado { background: #cbd5e1 !important; cursor: not-allowed !important; }
+        .btn-bloqueado { background: #cbd5e1 !important; cursor: not-allowed !important; opacity: 0.6; }
 
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 15px; box-sizing: border-box; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; overflow: hidden; animation: slideUp 0.3s ease; position: relative; max-height: 90vh; overflow-y: auto; }
@@ -66,25 +68,23 @@
         .cart-item img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
         .order-btn { background: var(--verde); color: white; width: 100%; border: none; padding: 16px; border-radius: 18px; font-size: 15px; font-weight: 800; margin-top: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; color: var(--oscuro); padding: 12px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; display: none; font-weight: bold; font-size: 13px; border-left: 5px solid var(--naranja); white-space: nowrap; }
-
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; color: var(--oscuro); padding: 12px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; display: none; font-weight: bold; font-size: 13px; border-left: 5px solid var(--naranja); }
         #btn-flotante-w { position: fixed; bottom: 20px; right: 20px; background: var(--verde); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 8px 25px rgba(37,211,102,0.4); cursor: pointer; z-index: 999; }
     </style>
 </head>
 <body>
 
 <div id="toast"></div>
-<div id="bloqueo-aviso">⚠️ ESTA TIENDA HA SUPERADO EL LÍMITE DE PRODUCTOS</div>
+<div id="bloqueo-aviso">⚠️ TIENDA EN PAUSA (LIMITE DE PRODUCTOS EXCEDIDO)</div>
 
 <header>
     <div class="logo-box">
         <img id="logo-tienda" src="" class="logo-img">
         <div class="logo-text">
             <h1 id="nombre-tienda">Cargando...</h1>
-            <div class="verificado-pro" id="pro-badge" style="display:none;">
-                Socio Pro <i class="fas fa-check-circle chulito-azul"></i>
+            <div id="badge-container">
+                <span class="badge-status socio-vendedor">Cargando...</span>
             </div>
-            <span id="gratis-badge" style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Tienda Verificada</span>
         </div>
     </div>
     <div class="cart-icon" onclick="toggleCart()">
@@ -178,12 +178,6 @@
             storeDocId = snap.docs[0].id;
             storeData = snap.docs[0].data();
             
-            // Diseño Pro vs Gratis
-            if(storeData.plan === "pro") {
-                document.getElementById('pro-badge').style.display = 'flex';
-                document.getElementById('gratis-badge').style.display = 'none';
-            }
-
             document.getElementById('nombre-tienda').innerText = storeData.nombreTienda;
             document.getElementById('logo-tienda').src = storeData.fotoPerfil || '';
             document.getElementById('btn-flotante-w').href = `https://wa.me/${storeId}`;
@@ -192,6 +186,30 @@
 
             loadProducts();
             loadCategories();
+        }
+    }
+
+    function updateHeaderUI() {
+        const badgeContainer = document.getElementById('badge-container');
+        const catList = document.getElementById('cat-list');
+
+        if (storeData.plan === "pro") {
+            // DISEÑO PRO: DORADO + CHULITO AZUL
+            badgeContainer.innerHTML = `<span class="badge-status verificado-pro">Vendedor Verificado Pro <i class="fas fa-check-circle chulito-azul"></i></span>`;
+            catList.style.display = 'flex';
+            document.getElementById('bloqueo-aviso').style.display = 'none';
+        } else {
+            if (limitBlocked) {
+                // DISEÑO BLOQUEADO: SOCIO VENDEDOR + QUITAR CATEGORIAS
+                badgeContainer.innerHTML = `<span class="badge-status socio-vendedor">Socio Vendedor</span>`;
+                catList.style.display = 'none';
+                document.getElementById('bloqueo-aviso').style.display = 'block';
+            } else {
+                // DISEÑO NORMAL GRATIS
+                badgeContainer.innerHTML = `<span class="badge-status socio-vendedor">Tienda Verificada</span>`;
+                catList.style.display = 'flex';
+                document.getElementById('bloqueo-aviso').style.display = 'none';
+            }
         }
     }
 
@@ -211,10 +229,10 @@
             allProducts = [];
             snap.forEach(d => allProducts.push({id: d.id, ...d.data()}));
             
-            // Lógica de Bloqueo por Límite (4 productos para Plan Gratis)
+            // Lógica de Bloqueo
             limitBlocked = (storeData.plan === "gratis" && allProducts.length >= 4);
-            if(limitBlocked) document.getElementById('bloqueo-aviso').style.display = 'block';
             
+            updateHeaderUI();
             renderProducts(allProducts);
         });
     }
@@ -224,8 +242,8 @@
         grid.innerHTML = '';
         arr.forEach(p => {
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
-            const btnClass = limitBlocked ? 'add-btn btn-bloqueado' : 'add-btn';
-            const btnAction = limitBlocked ? '' : `onclick="addToCartDirect('${encoded}', this)"`;
+            const isBtnDisabled = limitBlocked;
+            const btnClass = isBtnDisabled ? 'add-btn btn-bloqueado' : 'add-btn';
             
             grid.innerHTML += `
                 <div class="product-card">
@@ -233,17 +251,10 @@
                     <div class="product-info">
                         <span class="product-name">${p.nombre}</span>
                         <span class="product-price">$${Number(p.precio).toLocaleString()}</span>
-                        <button class="${btnClass}" ${btnAction}>AÑADIR A LISTA</button>
+                        <button class="${btnClass}" ${isBtnDisabled ? '' : `onclick="addToCartDirect('${encoded}', this)"`}>AÑADIR A LISTA</button>
                     </div>
                 </div>`;
         });
-    }
-
-    window.filterCat = (cat, btn) => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filtered = cat === 'Todas' ? allProducts : allProducts.filter(p => p.categoria === cat);
-        renderProducts(filtered);
     }
 
     window.openModal = (encoded) => {
@@ -265,10 +276,8 @@
 
     window.addToCartDirect = async (encodedData, btn) => {
         if(limitBlocked || clicsBloqueados) return;
-
         const p = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
         
-        // Validar si ya existe en la lista
         if(cart.some(item => item.id === p.id)) {
             notify("El producto ya se encuentra en la lista");
             return;
@@ -279,14 +288,11 @@
         updateCartUI();
 
         if(storeDocId) {
-            try {
-                await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
-            } catch (e) { console.error(e); }
+            try { await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) }); } catch (e) { console.error(e); }
         }
 
         btn.innerText = "¡AÑADIDO!";
         btn.style.background = "#25d366";
-        
         setTimeout(() => { 
             btn.innerText = "AÑADIR A LISTA"; 
             btn.style.background = "#232f3e"; 
@@ -296,20 +302,14 @@
 
     document.getElementById('add-to-cart-modal').onclick = async () => {
         if(limitBlocked || clicsBloqueados) return;
-        
         if(cart.some(item => item.id === currentProduct.id)) {
             notify("El producto ya se encuentra en la lista");
             return;
         }
-
         clicsBloqueados = true;
         cart.push(currentProduct);
         updateCartUI();
-        
-        if(storeDocId) {
-            await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
-        }
-        
+        if(storeDocId) await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
         closeModal();
         setTimeout(() => { clicsBloqueados = false; }, 2000);
     };
@@ -339,19 +339,23 @@
 
     window.sendOrder = async () => {
         if(limitBlocked || cart.length === 0) return;
-
         let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
         let t = 0;
         cart.forEach(i => { m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`; t += Number(i.precio); });
         const n = document.getElementById('order-notes').value;
         if(n) m += `%0A*Nota:* ${n}%0A`;
         m += `%0A*TOTAL A PAGAR: $${t.toLocaleString()}*%0A%0A_¿Están disponibles?_`;
-        
         window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
-
         cart = [];
         updateCartUI();
         toggleCart();
+    }
+
+    window.filterCat = (cat, btn) => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filtered = cat === 'Todas' ? allProducts : allProducts.filter(p => p.categoria === cat);
+        renderProducts(filtered);
     }
 
     start();
