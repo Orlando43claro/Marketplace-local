@@ -154,7 +154,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updateDoc, increment, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -171,7 +171,7 @@
     const storeId = urlParams.get('id');
 
     let storeData = null;
-    let storeDocId = null; // Guardar ID del socio para los clics
+    let storeDocId = null;
     let cart = [];
     let currentProduct = null;
     let isBlocked = false;
@@ -195,19 +195,26 @@
         if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
         document.getElementById('display-badge').innerHTML = storeData.plan === 'pro' ? '<span class="badge-mini">VERIFICADO 👑</span>' : '';
         
-        // INCREMENTO DE VISITAS Y MOSTRAR BIENVENIDA
+        // VISITAS Y BIENVENIDA
         await updateDoc(doc(db, "socios", storeDocId), { visitas: increment(1) });
         const toast = document.getElementById('toast-bienvenida');
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 3000);
 
-        // CONSULTA DE PRODUCTOS ORDENADA POR FECHA (MÁS NUEVO ARRIBA)
-        const qProd = query(collection(db, "productos"), where("waVendedor", "==", storeId), orderBy("fecha", "desc"));
+        // CONSULTA DE PRODUCTOS (Sin orderBy para evitar errores de índice)
+        const qProd = query(collection(db, "productos"), where("waVendedor", "==", storeId));
         onSnapshot(qProd, (snapshot) => {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
             let prods = [];
             snapshot.forEach(d => prods.push({id: d.id, ...d.data()}));
+
+            // ORDENAR MANUALMENTE POR FECHA (MÁS NUEVO ARRIBA)
+            prods.sort((a, b) => {
+                const dateA = a.fecha?.seconds || 0;
+                const dateB = b.fecha?.seconds || 0;
+                return dateB - dateA;
+            });
 
             if (storeData.plan === 'gratis' && prods.length >= 4) {
                 isBlocked = true;
@@ -267,8 +274,8 @@
         cart.push(p);
         updateCartUI();
 
-        // INCREMENTAR INTERESADOS (CLICS)
-        await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
+        // CONTAR CLIC (INTERESADO)
+        if(storeDocId) await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
 
         btn.innerText = "¡AÑADIDO!";
         btn.style.background = "#25d366";
@@ -281,10 +288,9 @@
         if(isBlocked) return;
         cart.push(currentProduct);
         updateCartUI();
-
-        // INCREMENTAR INTERESADOS AL AÑADIR DESDE MODAL
-        await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
-
+        
+        if(storeDocId) await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
+        
         closeModal();
     };
 
@@ -305,9 +311,8 @@
 
     window.sendOrder = async () => {
         if(isBlocked || cart.length === 0) return;
-
-        // INCREMENTAR INTERESADOS AL ENVIAR PEDIDO
-        await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
+        
+        if(storeDocId) await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
 
         let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
         let t = 0;
