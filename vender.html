@@ -140,7 +140,7 @@
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
         <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-link"></i> COPIAR LINK CORTO TIENDA
+            <i class="fas fa-link"></i> COPIAR LINK TIENDA
         </button>
     </div>
 
@@ -152,7 +152,7 @@
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
         <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ TIENDA EN PAUSA (4/4)</p>
-        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está oculta para los clientes.</p>
+        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está en pausa para los clientes.</p>
         <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">
             <i class="fab fa-whatsapp"></i> ACTIVAR TIENDA PRO
         </a>
@@ -210,7 +210,7 @@
             const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
             const shortUrl = await res.text();
             await navigator.clipboard.writeText(shortUrl);
-            notify("✅ Link corto copiado!");
+            notify("✅ Link  copiado!");
         } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
             notify("✅ Link original copiado");
