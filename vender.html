@@ -118,7 +118,7 @@
         <h4><i class="fas fa-lightbulb"></i> Guía de Inicio Rápido</h4>
         <div class="step"><p><b>1. Publicar:</b> Llena el formulario de abajo. En "Link Foto", pega el enlace directo de tu imagen (usa ImgBB).</p></div>
         <div class="step"><p><b>2. Gestionar:</b> Usa los iconos de <i class="fas fa-edit"></i> y <i class="fas fa-trash"></i> en tu lista de productos para actualizar o borrar.</p></div>
-        <div class="step"><p><b>3. Compartir:</b> Toca el botón azul "COPIAR LINK" y envíalo a tus clientes por WhatsApp o redes.</p></div>
+        <div class="step"><p><b>3. Compartir:</b> Toca el botón azul "COPIAR LINK" y envíalo a tus clientes por WhatsApp.</p></div>
         <div class="step"><p><b>4. Notificaciones:</b> Te avisaremos con un mensaje flotante cada vez que alguien visite tu tienda.</p></div>
         <p style="font-size: 9px; margin-top: 10px; color: var(--azul); font-weight: bold;">Estás en la VERSIÓN GRATIS (Límite 4 productos).</p>
         <button onclick="cerrarGuia()" style="width:100%; border:none; background:none; color:var(--oscuro); font-size:10px; font-weight:800; cursor:pointer; margin-top:5px;">[ ENTENDIDO, OCULTAR GUÍA ]</button>
@@ -140,7 +140,7 @@
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
         <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-link"></i> COPIAR LINK TIENDA
+            <i class="fas fa-link"></i> COPIAR LINK CORTO TIENDA
         </button>
     </div>
 
@@ -152,7 +152,7 @@
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
         <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ TIENDA EN PAUSA (4/4)</p>
-        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está en pausa para los clientes.</p>
+        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está oculta para los clientes.</p>
         <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">
             <i class="fab fa-whatsapp"></i> ACTIVAR TIENDA PRO
         </a>
@@ -177,7 +177,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -210,7 +210,7 @@
             const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
             const shortUrl = await res.text();
             await navigator.clipboard.writeText(shortUrl);
-            notify("✅ Link  copiado!");
+            notify("✅ Link corto copiado!");
         } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
             notify("✅ Link original copiado");
@@ -259,7 +259,7 @@
         });
         sesion = { celular: fullWa, tienda: t };
         localStorage.setItem('vendedorActual', JSON.stringify(sesion));
-        localStorage.removeItem('guia_leida'); // Mostrar guía al nuevo socio
+        localStorage.removeItem('guia_leida');
         initPanel();
     };
 
@@ -299,23 +299,29 @@
 
     function initPanel() {
         switchView('view-vender');
-        
-        // Controlar si se muestra la guía
         if(localStorage.getItem('guia_leida')) document.getElementById('guia-inicio').style.display = 'none';
 
         const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
         document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
 
+        // ESCUCHA SOCIO (NOTIFICACIONES Y STATS)
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
-                if(visitasActuales > 0 && d.visitas > visitasActuales) notify("🔥 ¡Alguien está viendo tu tienda!");
+                // Notificación: Solo si aumentan visitas
+                if(visitasActuales > 0 && d.visitas > visitasActuales) {
+                    notify("🔥 ¡Alguien está viendo tu tienda!");
+                }
                 visitasActuales = d.visitas;
                 esPRO = (d.plan === "pro");
+                
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
+                
+                // Actualizar contadores (De 1 en 1 garantizado por Firestore)
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
                 document.getElementById('stat-clics').innerText = d.clics || 0;
+
                 const badge = document.getElementById('plan-badge');
                 if(esPRO) { badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`; badge.className = "badge-plan pro-tag"; }
                 else { badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`; badge.className = "badge-plan gratis-tag"; }
@@ -323,6 +329,7 @@
             });
         });
 
+        // ESCUCHA PRODUCTOS (ORDENADOS: NUEVOS ARRIBA)
         onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
             totalProductos = snap.size;
             const lista = document.getElementById('lista-productos');
@@ -330,7 +337,7 @@
             let prods = [];
             snap.forEach(d => prods.push({id: d.id, ...d.data()}));
             
-            // ORDENAR EN NAVEGADOR (Nuevos arriba)
+            // Ordenar por fecha descendente (Nuevos primero)
             prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
 
             const isBlocked = (!esPRO && totalProductos >= LIMITE_GRATIS);
@@ -385,7 +392,7 @@
         bloquearSegunPlan();
     }
 
-    onSnapshot(collection(db, "categorias"), (snap) => {
+    onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snap) => {
         const sel = document.getElementById('p-categoria');
         if(sel) {
             sel.innerHTML = '<option value="Externo">Categoría...</option>';
