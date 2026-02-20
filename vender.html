@@ -128,7 +128,7 @@
         </button>
     </div>
 
-    <div id="stats-pro" class="stats-container">
+    <div class="stats-container">
         <div class="stat-box"><span>Visitas</span><span id="stat-visitas">0</span></div>
         <div class="stat-divider"></div>
         <div class="stat-box"><span>Interesados</span><span id="stat-clics">0</span></div>
@@ -161,7 +161,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -233,14 +233,8 @@
         if(!t || !wa || !c) return notify("Completa los datos");
         const fullWa = "57" + wa;
         await addDoc(collection(db, "socios"), { 
-            nombreTienda: t, 
-            celular: fullWa, 
-            codigo: c, 
-            plan: "gratis", 
-            fotoPerfil: fotoPerfilOptimizada, 
-            fecha: serverTimestamp(), 
-            visitas: 0,
-            clics: 0 
+            nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", 
+            fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0, clics: 0 
         });
         sesion = { celular: fullWa, tienda: t };
         localStorage.setItem('vendedorActual', JSON.stringify(sesion));
@@ -265,82 +259,65 @@
         const idEdit = document.getElementById('edit-id').value;
         const url = document.getElementById('p-url').value.trim();
         if(!url) return notify("Falta link de foto");
-
         const datos = {
             nombre: document.getElementById('p-nombre').value,
             precio: Number(document.getElementById('p-precio').value),
             stock: Number(document.getElementById('p-stock').value),
             descripcion: document.getElementById('p-desc').value,
-            imagen: url.split(',')[0], 
-            imagenes: url.split(','),
-            waVendedor: sesion.celular,
-            tienda: sesion.tienda,
+            imagen: url.split(',')[0], imagenes: url.split(','),
+            waVendedor: sesion.celular, tienda: sesion.tienda,
             categoria: document.getElementById('p-categoria').value,
             fecha: serverTimestamp()
         };
-
         if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
-        else await addDoc(collection(db, "productos"), { ...datos, clics: 0 });
-        
+        else await addDoc(collection(db, "productos"), datos);
         notify("¡Éxito!");
         resetForm();
     };
 
     function initPanel() {
         switchView('view-vender');
-        
         const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
         document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
 
-        // NOTIFICACIÓN EN TIEMPO REAL Y ESTADÍSTICAS
+        // ESCUCHA DE SOCIO PARA NOTIFICACIONES Y STATS
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
-                
-                // Si aumentan las visitas, avisamos al vendedor
-                if(visitasActuales > 0 && d.visitas > visitasActuales) {
-                    notify("🔥 ¡Alguien está viendo tu tienda!");
-                }
+                if(visitasActuales > 0 && d.visitas > visitasActuales) notify("🔥 ¡Alguien está viendo tu tienda!");
                 visitasActuales = d.visitas;
-
                 esPRO = (d.plan === "pro");
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
-                
-                // Mostrar Clics e Interesados
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
                 document.getElementById('stat-clics').innerText = d.clics || 0;
-
                 const badge = document.getElementById('plan-badge');
-                if(esPRO) {
-                    badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`;
-                    badge.className = "badge-plan pro-tag";
-                    document.getElementById('stats-pro').style.display = "flex";
-                } else {
-                    badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`;
-                    badge.className = "badge-plan gratis-tag";
-                }
+                if(esPRO) { badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`; badge.className = "badge-plan pro-tag"; }
+                else { badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`; badge.className = "badge-plan gratis-tag"; }
                 bloquearSegunPlan();
             });
         });
 
-        // ORDENAR PRODUCTOS: PRIMERO LOS NUEVOS
-        onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular), orderBy("fecha", "desc")), (snap) => {
+        // ESCUCHA DE PRODUCTOS (ORDENADOS POR CÓDIGO)
+        onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
             totalProductos = snap.size;
             const lista = document.getElementById('lista-productos');
             lista.innerHTML = '';
+            let prods = [];
+            snap.forEach(d => prods.push({id: d.id, ...d.data()}));
             
-            const isBlocked = (!esPRO && totalProductos >= LIMITE_GRATIS);
+            // ORDENAR: NUEVOS ARRIBA
+            prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
 
-            snap.forEach(d => {
-                const p = d.data();
+            const isBlocked = (!esPRO && totalProductos >= LIMITE_GRATIS);
+            prods.forEach(p => {
                 const lockClass = isBlocked ? 'action-locked' : '';
                 lista.innerHTML += `
                     <div class="prod-card">
                         <img src="${p.imagen}">
                         <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
-                        <button class="${lockClass}" onclick="prepararEdit('${d.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
-                        <button class="${lockClass}" onclick="abrirModalDel('${d.id}')"><i class="fas fa-trash"></i></button>
+                        <button class="${lockClass}" onclick="prepararEdit('${p.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
+                        <button class="${lockClass}" onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
             bloquearSegunPlan();
@@ -368,19 +345,9 @@
         bloquearSegunPlan();
     };
 
-    window.abrirModalDel = (id) => { 
-        idParaBorrar = id; 
-        document.getElementById('confirm-del-modal').style.display = 'flex'; 
-    };
-
-    window.cerrarModalDel = () => { 
-        document.getElementById('confirm-del-modal').style.display = 'none'; 
-    };
-
-    document.getElementById('confirm-yes').onclick = async () => { 
-        if(idParaBorrar) await deleteDoc(doc(db, "productos", idParaBorrar)); 
-        cerrarModalDel(); 
-    };
+    window.abrirModalDel = (id) => { idParaBorrar = id; document.getElementById('confirm-del-modal').style.display = 'flex'; };
+    window.cerrarModalDel = () => { document.getElementById('confirm-del-modal').style.display = 'none'; };
+    document.getElementById('confirm-yes').onclick = async () => { if(idParaBorrar) await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); };
 
     window.notify = (text) => { const t = document.getElementById('toast'); t.innerText = text; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); };
     window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
@@ -394,7 +361,7 @@
         bloquearSegunPlan();
     }
 
-    onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snap) => {
+    onSnapshot(query(collection(db, "categorias"), where("fecha", "!=", "")), (snap) => {
         const sel = document.getElementById('p-categoria');
         if(sel) {
             sel.innerHTML = '<option value="Externo">Categoría...</option>';
