@@ -10,7 +10,6 @@
         :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --oro: #ffb100; --rojo: #d91e18; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding-top: 85px; overflow-x: hidden; }
 
-        /* AVISO DE TIENDA EN PAUSA */
         #bloqueo-aviso { 
             display: none; 
             background: var(--rojo); 
@@ -50,7 +49,6 @@
         .product-price { color: var(--naranja); font-weight: 900; font-size: 15px; margin-bottom: 10px; display: block; }
         .add-btn { width: 100%; background: var(--oscuro); color: white; border: none; padding: 10px; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.3s; }
 
-        /* MODAL */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 15px; box-sizing: border-box; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; overflow: hidden; animation: slideUp 0.3s ease; position: relative; max-height: 90vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -58,7 +56,6 @@
         .modal-info { padding: 25px; }
         .close-modal { position: absolute; top: 15px; right: 15px; background: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; z-index: 10; }
 
-        /* CARRITO */
         .cart-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 3000; padding: 25px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; }
         .cart-panel.active { transform: translateY(0); }
         .cart-item { display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
@@ -153,9 +150,7 @@
     let storeData = null;
     let isBlocked = false;
     let currentProduct = null;
-    
-    // VARIABLE CERROJO PARA EL CONTADOR (EVITA INCREMENTO DOBLE)
-    let clicsBloqueados = false;
+    let clicsBloqueados = false; // Cerrojo para evitar incremento doble
 
     async function start() {
         if(!storeId) return;
@@ -173,7 +168,6 @@
             
             if(isBlocked) document.getElementById('bloqueo-aviso').style.display = 'block';
 
-            // Incrementar Visita (Solo una vez por carga de página)
             await updateDoc(doc(db, "socios", storeDocId), { visitas: increment(1) });
 
             loadProducts();
@@ -236,10 +230,9 @@
 
     window.closeModal = () => document.getElementById('modal-product').style.display = 'none';
 
-    // FUNCIÓN DE INCREMENTO DE INTERESADOS (CORREGIDA DE 1 EN 1)
     window.addToCartDirect = async (encodedData, btn) => {
         if(isBlocked || clicsBloqueados) return;
-        clicsBloqueados = true; // ACTIVAR CERROJO
+        clicsBloqueados = true;
 
         const p = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
         cart.push(p);
@@ -247,7 +240,6 @@
 
         if(storeDocId) {
             try {
-                // INCREMENTO ESTRICTO DE 1 USANDO FIREBASE INCREMENT
                 await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
             } catch (e) { console.error(e); }
         }
@@ -255,7 +247,6 @@
         btn.innerText = "¡AÑADIDO!";
         btn.style.background = "#25d366";
         
-        // LIBERAR CERROJO DESPUÉS DE 2 SEGUNDOS
         setTimeout(() => { 
             btn.innerText = "AÑADIR AL PEDIDO"; 
             btn.style.background = "#232f3e"; 
@@ -310,7 +301,13 @@
         const n = document.getElementById('order-notes').value;
         if(n) m += `%0A*Nota:* ${n}%0A`;
         m += `%0A*TOTAL A PAGAR: $${t.toLocaleString()}*%0A%0A_¿Están disponibles?_`;
+        
         window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
+
+        // BORRAR CARRITO DESPUÉS DE ENVIAR
+        cart = [];
+        updateCartUI();
+        toggleCart();
     }
 
     start();
