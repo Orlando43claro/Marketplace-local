@@ -27,7 +27,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* NOTIFICACIÓN TOAST (NUEVO DETALLE) */
+        /* NOTIFICACIÓN DE BIENVENIDA */
         #toast-bienvenida {
             position: fixed;
             top: 85px;
@@ -86,7 +86,7 @@
         #cart-count { position: absolute; top: -5px; right: -5px; background: var(--rojo); color: white; font-size: 11px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
 
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(2px); }
-        .modal-content { background: white; margin: 8vh auto; padding: 20px; width: 85%; max-width: 450px; border-radius: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; margin: 8vh auto; padding: 20px; width: 85%; max-width: 450px; border-radius: 20px; position: relative; max-height: 80vh; overflow-y: auto; }
         .close { position: absolute; top: 10px; right: 15px; font-size: 28px; color: #aaa; cursor: pointer; z-index: 10; }
         .carousel { display: flex; overflow-x: auto; snap-type: x mandatory; gap: 10px; margin-bottom: 15px; scrollbar-width: none; border-radius: 10px; }
         .carousel img { width: 100%; flex-shrink: 0; snap-align: start; height: 250px; object-fit: contain; background: #f9f9f9; }
@@ -171,7 +171,7 @@
     const storeId = urlParams.get('id');
 
     let storeData = null;
-    let storeDocId = null; // Guardamos el ID del documento del socio
+    let storeDocId = null; // Guardar ID del socio para los clics
     let cart = [];
     let currentProduct = null;
     let isBlocked = false;
@@ -195,7 +195,7 @@
         if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
         document.getElementById('display-badge').innerHTML = storeData.plan === 'pro' ? '<span class="badge-mini">VERIFICADO 👑</span>' : '';
         
-        // INCREMENTO DE VISITAS Y NOTIFICACIÓN TOAST
+        // INCREMENTO DE VISITAS Y MOSTRAR BIENVENIDA
         await updateDoc(doc(db, "socios", storeDocId), { visitas: increment(1) });
         const toast = document.getElementById('toast-bienvenida');
         toast.style.display = 'block';
@@ -267,7 +267,7 @@
         cart.push(p);
         updateCartUI();
 
-        // INCREMENTAR INTERESADOS (CLICS) EN LA DB
+        // INCREMENTAR INTERESADOS (CLICS)
         await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
 
         btn.innerText = "¡AÑADIDO!";
@@ -281,10 +281,10 @@
         if(isBlocked) return;
         cart.push(currentProduct);
         updateCartUI();
-        
+
         // INCREMENTAR INTERESADOS AL AÑADIR DESDE MODAL
         await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
-        
+
         closeModal();
     };
 
@@ -306,7 +306,7 @@
     window.sendOrder = async () => {
         if(isBlocked || cart.length === 0) return;
 
-        // INCREMENTAR INTERESADOS AL ENVIAR WHATSAPP
+        // INCREMENTAR INTERESADOS AL ENVIAR PEDIDO
         await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) });
 
         let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
