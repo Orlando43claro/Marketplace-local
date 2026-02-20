@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Socio YaMi | Panel de Control</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/flash-on.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --naranja: #ff6b00; --oscuro: #232f3e; --gris: #f0f2f5; --verde: #25d366; --azul: #2196f3; --rojo: #ff4444; --oro: #ffb100; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gris); margin: 0; padding: 15px; overflow-x: hidden; }
+        
+        .view { display: none; max-width: 400px; margin: auto; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative; width: 100%; margin-bottom: 20px; }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .yami-icon { background: var(--naranja); color: white; width: 45px; height: 45px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; transform: rotate(-10deg); font-weight: bold; }
+        
+        h2 { text-align: center; color: var(--oscuro); font-size: 1.1rem; margin-bottom: 20px; }
+        label { font-size: 10px; font-weight: 800; color: #94a3b8; display: block; margin-top: 10px; margin-left: 5px; text-transform: uppercase; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 12px; border: 1.5px solid #edf2f7; border-radius: 12px; background: #f8fafc; font-size: 14px; outline: none; }
+
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 13px; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-naranja { background: var(--naranja); color: white; box-shadow: 0 4px 15px rgba(255,107,0,0.2); }
+        .btn-logout { background: #fee2e2; color: var(--rojo); padding: 8px 12px; width: auto; font-size: 10px; font-weight: 800; border-radius: 10px; border: none; cursor: pointer; }
+        .btn-share { background: #e0f2fe; color: var(--azul); padding: 12px; border-radius: 15px; border: 2px dashed var(--azul); width: 100%; font-size: 11px; font-weight: 800; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        .modal-confirm { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .modal-card { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 340px; text-align: center; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; max-height: 90vh; overflow-y: auto; }
+
+        .profile-preview { width: 85px; height: 85px; border-radius: 50%; border: 3px solid var(--naranja); overflow: hidden; background: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        .profile-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .edit-icon { position: absolute; bottom: 0; right: 0; background: var(--oscuro); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 2px solid white; cursor: pointer; }
+
+        .badge-plan { font-size: 9px; padding: 2px 8px; border-radius: 20px; font-weight: 900; margin-left: 5px; text-transform: uppercase; }
+        .gratis-tag { background: #e2e8f0; color: #64748b; }
+        .pro-tag { background: var(--oro); color: var(--oscuro); box-shadow: 0 0 10px rgba(255, 177, 0, 0.4); }
+        
+        /* CARD INSTRUCCIONES */
+        .instrucciones-card { background: #fff; border-left: 5px solid var(--azul); padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .instrucciones-card h4 { margin: 0 0 10px; color: var(--azul); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .instrucciones-card p { font-size: 11px; color: #555; margin: 5px 0; line-height: 1.4; }
+        .step { background: #f0f7ff; padding: 8px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #e1effe; }
+
+        .bloqueo-pro { background: #fff5eb; border: 2px solid var(--naranja); padding: 20px; border-radius: 25px; text-align: center; margin-bottom: 20px; }
+        .form-locked { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+        .action-locked { opacity: 0.3 !important; pointer-events: none !important; cursor: not-allowed !important; }
+
+        .prod-card { background: white; padding: 10px; border-radius: 18px; margin-top: 10px; display: flex; gap: 12px; align-items: center; border: 1px solid #eee; }
+        .prod-card img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; }
+        .prod-card button { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; color: var(--oscuro); cursor: pointer; }
+        
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 20px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; display: none; font-weight: bold; font-size: 12px; border-left: 5px solid var(--naranja); width: 80%; text-align: center; }
+
+        .stats-container { display: flex; background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; border: 1.5px solid #edf2f7; justify-content: space-around; text-align: center; }
+        .stat-box { flex: 1; }
+        .stat-box span:first-child { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-box span:last-child { font-size: 18px; font-weight: 900; color: var(--oscuro); }
+        .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
+    </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div id="confirm-del-modal" class="modal-confirm">
+    <div class="modal-card">
+        <i class="fas fa-trash-alt" style="font-size: 40px; color: var(--rojo); margin-bottom: 10px;"></i>
+        <h3>¿Eliminar producto?</h3>
+        <button class="btn btn-naranja" id="confirm-yes" style="background: var(--rojo); margin-bottom: 10px;">BORRAR AHORA</button>
+        <button class="btn" style="background: var(--gris); color: var(--oscuro); padding: 10px;" onclick="cerrarModalDel()">CANCELAR</button>
+    </div>
+</div>
+
+<div id="view-login" class="view">
+    <div class="card">
+        <div class="logo-container"><div class="yami-icon"><i class="fas fa-bolt"></i></div><h1 style="margin:5px 0; font-size:24px;">YaMi Socios</h1></div>
+        <h2>Acceso Vendedor</h2>
+        <label>WhatsApp</label>
+        <div style="display: flex; gap: 8px; margin: 5px 0 12px;">
+            <select id="log-country" style="width: 95px; padding: 12px 5px; border-radius: 12px; background: #f8fafc; border: 1.5px solid #edf2f7;">
+                <option value="57" selected>🇨🇴 +57</option>
+            </select>
+            <input type="number" id="log-wa" style="flex: 1; margin: 0;" placeholder="315...">
+        </div>
+        <label>Código</label><input type="password" id="log-code" maxlength="4">
+        <button class="btn btn-naranja" onclick="login()">ENTRAR</button>
+        <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-register')">Registrar Nueva Tienda</button>
+    </div>
+</div>
+
+<div id="view-register" class="view">
+    <div class="card">
+        <h2>Nuevo Registro</h2>
+        <div class="profile-upload" style="position:relative; width:85px; margin:auto;">
+            <div class="profile-preview" id="reg-preview-box"><i class="fas fa-store" style="font-size: 25px; color: #ccc;"></i></div>
+            <label for="reg-foto-input" class="edit-icon"><i class="fas fa-camera"></i></label>
+            <input type="file" id="reg-foto-input" accept="image/*" style="display:none;">
+        </div>
+        <label>Nombre Tienda</label><input type="text" id="reg-tienda">
+        <label>WhatsApp</label>
+        <div style="display: flex; gap: 8px; margin: 5px 0 12px;">
+            <select id="reg-country" style="width: 95px; padding: 12px 5px; border-radius: 12px; background: #f8fafc; border: 1.5px solid #edf2f7;">
+                <option value="57" selected>🇨🇴 +57</option>
+            </select>
+            <input type="number" id="reg-wa" style="flex: 1; margin: 0;" placeholder="315...">
+        </div>
+        <label>Código (4 dígitos)</label><input type="password" id="reg-code" maxlength="4">
+        <button class="btn btn-naranja" onclick="registrarSocio()">CREAR TIENDA</button>
+        <button class="btn" style="background:none; color:var(--azul); margin-top:10px; font-size:11px;" onclick="switchView('view-login')">Regresar al Login</button>
+    </div>
+</div>
+
+<div id="view-vender" class="view">
+    <div id="guia-inicio" class="instrucciones-card">
+        <h4><i class="fas fa-lightbulb"></i> Guía de Inicio Rápido</h4>
+        <div class="step"><p><b>1. Publicar:</b> Llena el formulario de abajo. En "Link Foto", pega el enlace directo de tu imagen (usa ImgBB).</p></div>
+        <div class="step"><p><b>2. Gestionar:</b> Usa los iconos de <i class="fas fa-edit"></i> y <i class="fas fa-trash"></i> en tu lista de productos para actualizar o borrar.</p></div>
+        <div class="step"><p><b>3. Compartir:</b> Toca el botón azul "COPIAR LINK" y envíalo a tus clientes por WhatsApp o redes.</p></div>
+        <div class="step"><p><b>4. Notificaciones:</b> Te avisaremos con un mensaje flotante cada vez que alguien visite tu tienda.</p></div>
+        <p style="font-size: 9px; margin-top: 10px; color: var(--azul); font-weight: bold;">Estás en la VERSIÓN GRATIS (Límite 4 productos).</p>
+        <button onclick="cerrarGuia()" style="width:100%; border:none; background:none; color:var(--oscuro); font-size:10px; font-weight:800; cursor:pointer; margin-top:5px;">[ ENTENDIDO, OCULTAR GUÍA ]</button>
+    </div>
+
+    <div style="background: white; padding: 12px; border-radius: 20px; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="position: relative; width: 45px; height: 45px;">
+                    <div id="panel-logo-box" class="profile-preview" style="width:45px; height:45px; margin:0; border-width: 2px;"></div>
+                    <label for="panel-foto-input" class="edit-icon" style="width:18px; height:18px; font-size:8px;"><i class="fas fa-pencil-alt"></i></label>
+                    <input type="file" id="panel-foto-input" accept="image/*" style="display:none;">
+                </div>
+                <div>
+                    <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span><br>
+                    <span id="plan-badge" class="badge-plan"></span>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">SALIR</button>
+        </div>
+        <button class="btn-share" onclick="copiarLinkTienda()">
+            <i class="fas fa-link"></i> COPIAR LINK CORTO TIENDA
+        </button>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-box"><span>Visitas</span><span id="stat-visitas">0</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-box"><span>Interesados</span><span id="stat-clics">0</span></div>
+    </div>
+
+    <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
+        <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ TIENDA EN PAUSA (4/4)</p>
+        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está oculta para los clientes.</p>
+        <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">
+            <i class="fab fa-whatsapp"></i> ACTIVAR TIENDA PRO
+        </a>
+    </div>
+
+    <div class="card" id="form-card">
+        <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
+        <input type="hidden" id="edit-id">
+        <label>Nombre del Producto</label><input type="text" id="p-nombre">
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1"><label>Precio</label><input type="number" id="p-precio"></div>
+            <div style="flex:1"><label>Stock</label><input type="number" id="p-stock"></div>
+        </div>
+        <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
+        <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
+        <label>Link Foto (ImgBB)</label><input type="text" id="p-url" placeholder="Pega el enlace directo aquí">
+        <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
+    </div>
+
+    <div id="inventario" style="margin-top: 25px;"><div id="lista-productos"></div></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
+        authDomain: "express-market-868d9.firebaseapp.com",
+        projectId: "express-market-868d9",
+        storageBucket: "express-market-868d9.firebasestorage.app",
+        messagingSenderId: "502987186701",
+        appId: "1:502987186701:web:9fb3c28ce377fb27552b44"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let sesion = JSON.parse(localStorage.getItem('vendedorActual'));
+    let idParaBorrar = null;
+    let fotoPerfilOptimizada = "";
+    let esPRO = false;
+    let totalProductos = 0;
+    let visitasActuales = 0;
+    const LIMITE_GRATIS = 4;
+
+    window.cerrarGuia = () => {
+        document.getElementById('guia-inicio').style.display = 'none';
+        localStorage.setItem('guia_leida', 'true');
+    };
+
+    window.copiarLinkTienda = async () => {
+        const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
+        notify("⏳ Generando link...");
+        try {
+            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
+            const shortUrl = await res.text();
+            await navigator.clipboard.writeText(shortUrl);
+            notify("✅ Link corto copiado!");
+        } catch (err) {
+            await navigator.clipboard.writeText(urlLarga);
+            notify("✅ Link original copiado");
+        }
+    };
+
+    async function optimizarImagen(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image(); img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = 300; canvas.height = 300;
+                    const min = Math.min(img.width, img.height);
+                    ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, 300, 300);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                };
+            };
+        });
+    }
+
+    document.getElementById('reg-foto-input').onchange = async (e) => {
+        if(!e.target.files[0]) return;
+        fotoPerfilOptimizada = await optimizarImagen(e.target.files[0]);
+        document.getElementById('reg-preview-box').innerHTML = `<img src="${fotoPerfilOptimizada}">`;
+    };
+
+    document.getElementById('panel-foto-input').onchange = async (e) => {
+        if(!e.target.files[0]) return;
+        const foto = await optimizarImagen(e.target.files[0]);
+        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
+        snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Foto actualizada"); });
+    };
+
+    window.registrarSocio = async () => {
+        const t = document.getElementById('reg-tienda').value.trim();
+        const wa = document.getElementById('reg-wa').value.trim();
+        const c = document.getElementById('reg-code').value.trim();
+        if(!t || !wa || !c) return notify("Completa los datos");
+        const fullWa = "57" + wa;
+        await addDoc(collection(db, "socios"), { 
+            nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", 
+            fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0, clics: 0 
+        });
+        sesion = { celular: fullWa, tienda: t };
+        localStorage.setItem('vendedorActual', JSON.stringify(sesion));
+        localStorage.removeItem('guia_leida'); // Mostrar guía al nuevo socio
+        initPanel();
+    };
+
+    window.login = async () => {
+        const wa = document.getElementById('log-wa').value.trim();
+        const c = document.getElementById('log-code').value.trim();
+        const fullWa = document.getElementById('log-country').value + wa;
+        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", fullWa)));
+        let user = null;
+        snap.forEach(d => { if(d.data().codigo == c) user = d.data(); });
+        if(user) {
+            sesion = { celular: fullWa, tienda: user.nombreTienda };
+            localStorage.setItem('vendedorActual', JSON.stringify(sesion));
+            initPanel();
+        } else notify("Datos incorrectos");
+    };
+
+    window.guardarProducto = async () => {
+        const idEdit = document.getElementById('edit-id').value;
+        const url = document.getElementById('p-url').value.trim();
+        if(!url) return notify("Falta link de foto");
+        const datos = {
+            nombre: document.getElementById('p-nombre').value,
+            precio: Number(document.getElementById('p-precio').value),
+            stock: Number(document.getElementById('p-stock').value),
+            descripcion: document.getElementById('p-desc').value,
+            imagen: url.split(',')[0], imagenes: url.split(','),
+            waVendedor: sesion.celular, tienda: sesion.tienda,
+            categoria: document.getElementById('p-categoria').value,
+            fecha: serverTimestamp()
+        };
+        if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
+        else await addDoc(collection(db, "productos"), datos);
+        notify("¡Éxito!");
+        resetForm();
+    };
+
+    function initPanel() {
+        switchView('view-vender');
+        
+        // Controlar si se muestra la guía
+        if(localStorage.getItem('guia_leida')) document.getElementById('guia-inicio').style.display = 'none';
+
+        const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
+        document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
+
+        onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
+            snap.forEach(doc => {
+                const d = doc.data();
+                if(visitasActuales > 0 && d.visitas > visitasActuales) notify("🔥 ¡Alguien está viendo tu tienda!");
+                visitasActuales = d.visitas;
+                esPRO = (d.plan === "pro");
+                document.getElementById('header-tienda').innerText = d.nombreTienda;
+                if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
+                document.getElementById('stat-visitas').innerText = d.visitas || 0;
+                document.getElementById('stat-clics').innerText = d.clics || 0;
+                const badge = document.getElementById('plan-badge');
+                if(esPRO) { badge.innerHTML = `<i class="fas fa-crown"></i> SOCIO PRO`; badge.className = "badge-plan pro-tag"; }
+                else { badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`; badge.className = "badge-plan gratis-tag"; }
+                bloquearSegunPlan();
+            });
+        });
+
+        onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
+            totalProductos = snap.size;
+            const lista = document.getElementById('lista-productos');
+            lista.innerHTML = '';
+            let prods = [];
+            snap.forEach(d => prods.push({id: d.id, ...d.data()}));
+            
+            // ORDENAR EN NAVEGADOR (Nuevos arriba)
+            prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
+
+            const isBlocked = (!esPRO && totalProductos >= LIMITE_GRATIS);
+            prods.forEach(p => {
+                const lockClass = isBlocked ? 'action-locked' : '';
+                lista.innerHTML += `
+                    <div class="prod-card">
+                        <img src="${p.imagen}">
+                        <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
+                        <button class="${lockClass}" onclick="prepararEdit('${p.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
+                        <button class="${lockClass}" onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
+            });
+            bloquearSegunPlan();
+        });
+    }
+
+    function bloquearSegunPlan() {
+        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS && !document.getElementById('edit-id').value);
+        document.getElementById('mensaje-limite').style.display = bloqueado ? 'block' : 'none';
+        document.getElementById('form-card').classList.toggle('form-locked', bloqueado);
+        document.getElementById('btn-main').disabled = bloqueado;
+    }
+
+    window.prepararEdit = (id, n, p, s, d, img, cat) => {
+        document.getElementById('edit-id').value = id;
+        document.getElementById('form-title').innerText = "Editar Producto";
+        document.getElementById('btn-main').innerText = "ACTUALIZAR CAMBIOS";
+        document.getElementById('p-nombre').value = n;
+        document.getElementById('p-precio').value = p;
+        document.getElementById('p-stock').value = s;
+        document.getElementById('p-desc').value = d;
+        document.getElementById('p-url').value = img;
+        document.getElementById('p-categoria').value = cat;
+        window.scrollTo(0,0);
+        bloquearSegunPlan();
+    };
+
+    window.abrirModalDel = (id) => { idParaBorrar = id; document.getElementById('confirm-del-modal').style.display = 'flex'; };
+    window.cerrarModalDel = () => { document.getElementById('confirm-del-modal').style.display = 'none'; };
+    document.getElementById('confirm-yes').onclick = async () => { if(idParaBorrar) await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); };
+
+    window.notify = (text) => { const t = document.getElementById('toast'); t.innerText = text; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); };
+    window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
+    window.logout = () => { localStorage.clear(); window.location.reload(); };
+
+    function resetForm() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('form-title').innerText = "Gestionar Producto";
+        document.getElementById('btn-main').innerText = "GUARDAR PRODUCTO";
+        document.querySelectorAll('#view-vender input, #view-vender textarea').forEach(i => i.value = '');
+        bloquearSegunPlan();
+    }
+
+    onSnapshot(collection(db, "categorias"), (snap) => {
+        const sel = document.getElementById('p-categoria');
+        if(sel) {
+            sel.innerHTML = '<option value="Externo">Categoría...</option>';
+            snap.forEach(d => { sel.innerHTML += `<option value="${d.data().nombre}">${d.data().nombre}</option>`; });
+        }
+    });
+
+    if(sesion) initPanel(); else switchView('view-login');
+</script>
+</body>
+</html>
