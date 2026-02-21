@@ -40,10 +40,7 @@
 
         .container { max-width: 500px; margin: auto; padding: 15px; }
 
-        .categories { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
-        .categories::-webkit-scrollbar { display: none; }
-        .cat-btn { background: white; padding: 8px 18px; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; border: 1.5px solid #edf2f7; color: #64748b; transition: 0.3s; }
-        .cat-btn.active { background: var(--naranja); color: white; border-color: var(--naranja); box-shadow: 0 4px 12px rgba(255,107,0,0.2); }
+        /* SE HA ELIMINADO EL DISEÑO DE CATEGORÍAS */
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .product-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.04); transition: 0.3s; border: 1px solid #f1f5f9; position: relative; }
@@ -74,7 +71,7 @@
 <body>
 
 <div id="toast"></div>
-<div id="bloqueo-aviso">⚠️ ESTA TIENDA HA ALCANZADO EL LÍMITE GRATUITO</div>
+<div id="bloqueo-aviso">⚠️ ESTA TIENDA TIENE PRODUCTOS EN PAUSA</div>
 
 <header>
     <div class="logo-box">
@@ -93,9 +90,6 @@
 </header>
 
 <div class="container">
-    <div id="cat-list" class="categories">
-        <div class="cat-btn active" onclick="filterCat('Todas', this)">Todas</div>
-    </div>
     <div id="product-grid" class="grid"></div>
 </div>
 
@@ -157,7 +151,6 @@
     let cart = [];
     let storeDocId = null;
     let storeData = null;
-    let limitBlocked = false;
     let currentProduct = null;
     let clicsBloqueados = false;
 
@@ -184,24 +177,18 @@
             await updateDoc(doc(db, "socios", storeDocId), { visitas: increment(1) });
 
             loadProducts();
-            loadCategories();
         }
     }
 
     function updateHeaderUI() {
         const badgeContainer = document.getElementById('badge-container');
-        const catList = document.getElementById('cat-list');
 
         if (storeData.plan === "pro") {
             badgeContainer.innerHTML = `<span class="badge-status verificado-pro">Vendedor Verificado Pro <i class="fas fa-check-circle chulito-azul"></i></span>`;
-            catList.style.display = 'flex';
             document.getElementById('bloqueo-aviso').style.display = 'none';
         } else {
-            // NUNCA OCULTAMOS LA TIENDA, solo mostramos el aviso si se pasó de productos
             badgeContainer.innerHTML = `<span class="badge-status socio-vendedor">Tienda Verificada</span>`;
-            catList.style.display = 'flex';
             
-            // Solo mostramos el aviso rojo pero los productos siguen visibles
             if (allProducts.length > 4) {
                 document.getElementById('bloqueo-aviso').style.display = 'block';
                 document.getElementById('bloqueo-aviso').innerText = "⚠️ ESTA TIENDA TIENE PRODUCTOS EN PAUSA";
@@ -211,23 +198,12 @@
         }
     }
 
-    function loadCategories() {
-        onSnapshot(collection(db, "categorias"), (snap) => {
-            const list = document.getElementById('cat-list');
-            list.innerHTML = '<div class="cat-btn active" onclick="filterCat(\'Todas\', this)">Todas</div>';
-            snap.forEach(d => {
-                list.innerHTML += `<div class="cat-btn" onclick="filterCat('${d.data().nombre}', this)">${d.data().nombre}</div>`;
-            });
-        });
-    }
-
     function loadProducts() {
         const q = query(collection(db, "productos"), where("waVendedor", "==", storeId));
         onSnapshot(q, (snap) => {
             allProducts = [];
             snap.forEach(d => allProducts.push({id: d.id, ...d.data()}));
             
-            // IMPORTANTE: Los productos siempre se renderizan
             updateHeaderUI();
             renderProducts(allProducts);
         });
@@ -239,7 +215,6 @@
         arr.forEach((p, index) => {
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
             
-            // Lógica corregida: Solo bloqueamos el botón de compra si el vendedor es gratis y el producto es el 5to o más
             const isPro = storeData.plan === "pro";
             const isOverLimit = (!isPro && index >= 4);
             const btnClass = isOverLimit ? 'add-btn btn-bloqueado' : 'add-btn';
@@ -266,7 +241,6 @@
         document.getElementById('m-precio').innerText = `$${Number(p.precio).toLocaleString()}`;
         document.getElementById('m-desc').innerText = p.descripcion || '';
         
-        // Verificamos si este producto específico está bloqueado (index >= 4 en gratis)
         const prodIndex = allProducts.findIndex(item => item.id === p.id);
         const isOverLimit = (storeData.plan === "gratis" && prodIndex >= 4);
         
@@ -361,13 +335,6 @@
         cart = [];
         updateCartUI();
         toggleCart();
-    }
-
-    window.filterCat = (cat, btn) => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filtered = cat === 'Todas' ? allProducts : allProducts.filter(p => p.categoria === cat);
-        renderProducts(filtered);
     }
 
     start();
