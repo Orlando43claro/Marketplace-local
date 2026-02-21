@@ -55,7 +55,20 @@
         .stat-box span:last-child { font-size: 18px; font-weight: 900; color: var(--oscuro); }
         .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
 
-        .pro-tag-dorado { background: var(--dorado-grad) !important; color: #000 !important; font-weight: 900 !important; padding: 4px 10px !important; border-radius: 8px !important; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(184, 134, 11, 0.3); border: 1px solid #d4af37; font-size: 10px; }
+        /* ESTILO DORADO PRO */
+        .pro-tag-dorado {
+            background: var(--dorado-grad) !important;
+            color: #000 !important;
+            font-weight: 900 !important;
+            padding: 4px 10px !important;
+            border-radius: 8px !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 10px rgba(184, 134, 11, 0.3);
+            border: 1px solid #d4af37;
+            font-size: 10px;
+        }
         .timer-pro { font-size: 11px; color: #b8860b; font-weight: 700; margin-top: 4px; display: block; }
     </style>
 </head>
@@ -115,9 +128,10 @@
     <div id="guia-inicio" class="instrucciones-card" style="display:none;">
         <h4><i class="fas fa-lightbulb"></i> Guía de Inicio Rápido</h4>
         <div class="step"><p><b>1. Publicar:</b> Llena el formulario de abajo. En "Link Foto", pega el enlace directo de tu imagen (usa ImgBB).</p></div>
-        <div class="step"><p><b>2. Gestionar:</b> Usa los iconos de <i class="fas fa-edit"></i> y <i class="fas fa-trash"></i> para actualizar o borrar.</p></div>
-        <div class="step"><p><b>3. Compartir:</b> Toca "COPIAR LINK" y envíalo a tus clientes por WhatsApp.</p></div>
-        <button onclick="marcarGuiaVista()" style="width:100%; border:none; background:var(--azul); color:white; padding:12px; border-radius:12px; font-size:11px; font-weight:800; cursor:pointer; margin-top:5px;">ENTENDIDO, NO MOSTRAR MÁS</button>
+        <div class="step"><p><b>2. Gestionar:</b> Usa los iconos de <i class="fas fa-edit"></i> y <i class="fas fa-trash"></i> en tu lista de productos para actualizar o borrar.</p></div>
+        <div class="step"><p><b>3. Compartir:</b> Toca el botón azul "COPIAR LINK" y envíalo a tus clientes por WhatsApp.</p></div>
+        <div class="step"><p><b>4. Notificaciones:</b> Te avisaremos con un mensaje flotante cada vez que alguien visite tu tienda.</p></div>
+        <button onclick="cerrarGuiaDefinitivo()" style="width:100%; border:none; background:var(--azul); color:white; padding:12px; border-radius:12px; font-size:11px; font-weight:800; cursor:pointer; margin-top:5px;">ENTENDIDO, NO MOSTRAR MÁS</button>
     </div>
 
     <div style="background: white; padding: 12px; border-radius: 20px; margin-bottom: 15px;">
@@ -149,8 +163,10 @@
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
         <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ TIENDA EN PAUSA (4/4)</p>
-        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite gratuito.</p>
-        <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">ACTIVAR PRO</a>
+        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está oculta para los clientes.</p>
+        <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">
+            <i class="fab fa-whatsapp"></i> ACTIVAR TIENDA PRO
+        </a>
     </div>
 
     <div class="card" id="form-card">
@@ -193,13 +209,10 @@
     let visitasActuales = -1; 
     const LIMITE_GRATIS = 4;
 
-    // --- FUNCION GUIA VISTA PERMANENTE ---
-    window.marcarGuiaVista = async () => {
+    // --- GUIA UNICA POR USUARIO ---
+    window.cerrarGuiaDefinitivo = () => {
         document.getElementById('guia-inicio').style.display = 'none';
-        const q = query(collection(db, "socios"), where("celular", "==", sesion.celular));
-        const snap = await getDocs(q);
-        snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { guiaVista: true }); });
-        notify("Guía completada ✅");
+        if(sesion) localStorage.setItem('guia_oculta_' + sesion.celular, 'true');
     };
 
     window.copiarLinkTienda = async () => {
@@ -209,7 +222,7 @@
             const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
             const shortUrl = await res.text();
             await navigator.clipboard.writeText(shortUrl);
-            notify("✅ Link copiado!");
+            notify("✅ Copiando! Link");
         } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
             notify("✅ Link original copiado");
@@ -254,8 +267,7 @@
         const fullWa = "57" + wa;
         await addDoc(collection(db, "socios"), { 
             nombreTienda: t, celular: fullWa, codigo: c, plan: "gratis", 
-            fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0, clics: 0,
-            guiaVista: false // Se inicia en falso para que la vea la primera vez
+            fotoPerfil: fotoPerfilOptimizada, fecha: serverTimestamp(), visitas: 0, clics: 0 
         });
         sesion = { celular: fullWa, tienda: t };
         localStorage.setItem('vendedorActual', JSON.stringify(sesion));
@@ -296,38 +308,58 @@
         resetForm();
     };
 
-    let timerInterval;
-    function actualizarTimerPro(activado, fechaPagoFB) {
-        const el = document.getElementById('contador-pro');
-        clearInterval(timerInterval);
-        if(!activado || !fechaPagoFB) { el.style.display = 'none'; return; }
-        el.style.display = 'block';
+    // --- CONTADOR PERSISTENTE SINCRONIZADO CON SOCIOS.HTML ---
+    let intervalTimer;
+    function actualizarContadorReal(esActivado, fechaPagoFB) {
+        const contElement = document.getElementById('contador-pro');
+        clearInterval(intervalTimer);
+
+        if (!esActivado || !fechaPagoFB) {
+            contElement.style.display = 'none';
+            return;
+        }
+
+        contElement.style.display = 'block';
+
         const tick = () => {
-            const diff = new Date().getTime() - fechaPagoFB.toDate().getTime();
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            el.innerHTML = `<i class="fas fa-history"></i> Pro: ${d}d ${h}h ${m}m ${s}s (Día ${d+1}/30)`;
+            const ahora = new Date().getTime();
+            const inicio = fechaPagoFB.toDate().getTime(); // Convierte Timestamp de Firebase a JS
+            const diff = ahora - inicio;
+
+            const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diff % (1000 * 60)) / 1000);
+
+            contElement.innerHTML = `<i class="fas fa-history"></i> Pro: ${dias}d ${horas}h ${minutos}m ${segundos}s (Día ${dias + 1}/30)`;
+            
+            if (dias >= 30) {
+                contElement.innerHTML = `<span style="color:var(--rojo)">Periodo Pro Finalizado</span>`;
+            }
         };
-        timerInterval = setInterval(tick, 1000); tick();
+
+        intervalTimer = setInterval(tick, 1000);
+        tick();
     }
 
     function initPanel() {
         switchView('view-vender');
-        const msg = encodeURIComponent(`Hola, deseo activar PRO para: ${sesion.tienda} (${sesion.celular})`);
+        
+        // Mostrar guía solo si el vendedor no la ocultó
+        if(!localStorage.getItem('guia_oculta_' + sesion.celular)) {
+            document.getElementById('guia-inicio').style.display = 'block';
+        }
+
+        const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
         document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
 
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
-                if(visitasActuales !== -1 && d.visitas > visitasActuales) notify("🔥 ¡Alguien visitó tu tienda!");
+                if(visitasActuales !== -1 && d.visitas > visitasActuales) notify("🔥 ¡Alguien está viendo tu tienda!");
                 visitasActuales = d.visitas;
                 esPRO = (d.plan === "pro");
                 
-                // MOSTRAR GUIA SOLO SI NO HA SIDO VISTA EN FIREBASE
-                document.getElementById('guia-inicio').style.display = (d.guiaVista) ? 'none' : 'block';
-
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
@@ -337,11 +369,12 @@
                 if(esPRO) { 
                     badge.innerHTML = `<i class="fas fa-crown"></i> VENDEDOR VERIFICADO PRO`; 
                     badge.className = "pro-tag-dorado"; 
-                    actualizarTimerPro(true, d.fechaPago);
+                    // LE PASAMOS EL CAMPO 'fechaPago' QUE VIENE DE FIREBASE
+                    actualizarContadorReal(true, d.fechaPago);
                 } else { 
                     badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`; 
-                    badge.className = "badge-plan"; 
-                    actualizarTimerPro(false, null);
+                    badge.className = "badge-plan gratis-tag"; 
+                    actualizarContadorReal(false, null);
                 }
                 bloquearSegunPlan();
             });
@@ -354,6 +387,7 @@
             let prods = [];
             snap.forEach(d => prods.push({id: d.id, ...d.data()}));
             prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
+
             const isBlocked = (!esPRO && totalProductos >= LIMITE_GRATIS);
             prods.forEach(p => {
                 const lockClass = isBlocked ? 'action-locked' : '';
