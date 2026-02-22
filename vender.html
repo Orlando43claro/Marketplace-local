@@ -55,20 +55,7 @@
         .stat-box span:last-child { font-size: 18px; font-weight: 900; color: var(--oscuro); }
         .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
 
-        /* ESTILO DORADO PRO */
-        .pro-tag-dorado {
-            background: var(--dorado-grad) !important;
-            color: #000 !important;
-            font-weight: 900 !important;
-            padding: 4px 10px !important;
-            border-radius: 8px !important;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 10px rgba(184, 134, 11, 0.3);
-            border: 1px solid #d4af37;
-            font-size: 10px;
-        }
+        .pro-tag-dorado { background: var(--dorado-grad) !important; color: #000 !important; font-weight: 900 !important; padding: 4px 10px !important; border-radius: 8px !important; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(184, 134, 11, 0.3); border: 1px solid #d4af37; font-size: 10px; }
         .timer-pro { font-size: 11px; color: #b8860b; font-weight: 700; margin-top: 4px; display: block; }
     </style>
 </head>
@@ -162,8 +149,8 @@
     </div>
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
-        <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ TIENDA EN PAUSA (4/4)</p>
-        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite del plan gratuito. Tu tienda está oculta para los clientes.</p>
+        <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ PRODUCTOS LÍMITE (4/4)</p>
+        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite gratuito. Pasa a PRO para añadir más productos.</p>
         <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">
             <i class="fab fa-whatsapp"></i> ACTIVAR TIENDA PRO
         </a>
@@ -209,23 +196,27 @@
     let visitasActuales = -1; 
     const LIMITE_GRATIS = 4;
 
-    // --- GUIA UNICA POR USUARIO ---
     window.cerrarGuiaDefinitivo = () => {
         document.getElementById('guia-inicio').style.display = 'none';
         if(sesion) localStorage.setItem('guia_oculta_' + sesion.celular, 'true');
     };
 
+    // SOLUCIÓN DEFINITIVA: LINK DIRECTO SIN INTERMEDIARIOS (CARGA INSTANTÁNEA)
     window.copiarLinkTienda = async () => {
         const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
-        notify("🔗 Generando link...");
+        
         try {
-            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlLarga)}`);
-            const shortUrl = await res.text();
-            await navigator.clipboard.writeText(shortUrl);
-            notify("✅ Copiando! Link");
-        } catch (err) {
             await navigator.clipboard.writeText(urlLarga);
-            notify("✅ Link original copiado");
+            notify("✅ ¡Link copiado con éxito!");
+        } catch (err) {
+            // Fallback manual si el navegador bloquea el clipboard
+            const el = document.createElement('textarea');
+            el.value = urlLarga;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            notify("✅ ¡Link copiado!");
         }
     };
 
@@ -255,7 +246,8 @@
     document.getElementById('panel-foto-input').onchange = async (e) => {
         if(!e.target.files[0]) return;
         const foto = await optimizarImagen(e.target.files[0]);
-        const snap = await getDocs(query(collection(db, "socios"), where("celular", "==", sesion.celular)));
+        const q = query(collection(db, "socios"), where("celular", "==", sesion.celular));
+        const snap = await getDocs(q);
         snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Foto actualizada"); });
     };
 
@@ -308,48 +300,30 @@
         resetForm();
     };
 
-    // --- CONTADOR PERSISTENTE SINCRONIZADO CON SOCIOS.HTML ---
     let intervalTimer;
     function actualizarContadorReal(esActivado, fechaPagoFB) {
         const contElement = document.getElementById('contador-pro');
         clearInterval(intervalTimer);
-
-        if (!esActivado || !fechaPagoFB) {
-            contElement.style.display = 'none';
-            return;
-        }
-
+        if (!esActivado || !fechaPagoFB) { contElement.style.display = 'none'; return; }
         contElement.style.display = 'block';
-
         const tick = () => {
             const ahora = new Date().getTime();
-            const inicio = fechaPagoFB.toDate().getTime(); // Convierte Timestamp de Firebase a JS
+            const inicio = fechaPagoFB.toDate().getTime();
             const diff = ahora - inicio;
-
             const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
             const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const segundos = Math.floor((diff % (1000 * 60)) / 1000);
-
             contElement.innerHTML = `<i class="fas fa-history"></i> Pro: ${dias}d ${horas}h ${minutos}m ${segundos}s (Día ${dias + 1}/30)`;
-            
-            if (dias >= 30) {
-                contElement.innerHTML = `<span style="color:var(--rojo)">Periodo Pro Finalizado</span>`;
-            }
+            if (dias >= 30) { contElement.innerHTML = `<span style="color:var(--rojo)">Periodo Pro Finalizado</span>`; }
         };
-
         intervalTimer = setInterval(tick, 1000);
         tick();
     }
 
     function initPanel() {
         switchView('view-vender');
-        
-        // Mostrar guía solo si el vendedor no la ocultó
-        if(!localStorage.getItem('guia_oculta_' + sesion.celular)) {
-            document.getElementById('guia-inicio').style.display = 'block';
-        }
-
+        if(!localStorage.getItem('guia_oculta_' + sesion.celular)) document.getElementById('guia-inicio').style.display = 'block';
         const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
         document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
 
@@ -359,17 +333,14 @@
                 if(visitasActuales !== -1 && d.visitas > visitasActuales) notify("🔥 ¡Alguien está viendo tu tienda!");
                 visitasActuales = d.visitas;
                 esPRO = (d.plan === "pro");
-                
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
                 document.getElementById('stat-clics').innerText = d.clics || 0;
-
                 const badge = document.getElementById('plan-badge');
                 if(esPRO) { 
                     badge.innerHTML = `<i class="fas fa-crown"></i> VENDEDOR VERIFICADO PRO`; 
                     badge.className = "pro-tag-dorado"; 
-                    // LE PASAMOS EL CAMPO 'fechaPago' QUE VIENE DE FIREBASE
                     actualizarContadorReal(true, d.fechaPago);
                 } else { 
                     badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`; 
@@ -387,16 +358,13 @@
             let prods = [];
             snap.forEach(d => prods.push({id: d.id, ...d.data()}));
             prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
-
-            const isBlocked = (!esPRO && totalProductos >= LIMITE_GRATIS);
             prods.forEach(p => {
-                const lockClass = isBlocked ? 'action-locked' : '';
                 lista.innerHTML += `
                     <div class="prod-card">
                         <img src="${p.imagen}">
                         <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
-                        <button class="${lockClass}" onclick="prepararEdit('${p.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
-                        <button class="${lockClass}" onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
+                        <button onclick="prepararEdit('${p.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion}','${p.imagen}','${p.categoria}')"><i class="fas fa-edit"></i></button>
+                        <button onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
             bloquearSegunPlan();
