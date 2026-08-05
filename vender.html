@@ -57,7 +57,6 @@
         .pro-tag-dorado { background: var(--dorado-grad) !important; color: #000 !important; font-weight: 900 !important; padding: 4px 10px !important; border-radius: 8px !important; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(184, 134, 11, 0.3); border: 1px solid #d4af37; font-size: 10px; }
         .timer-pro { font-size: 11px; color: #b8860b; font-weight: 700; margin-top: 4px; display: block; }
 
-        /* SKELETON SCREENS STYLES */
         @keyframes shimmer {
             0% { background-position: -200px 0; }
             100% { background-position: calc(200px + 100%) 0; }
@@ -174,15 +173,13 @@
     <div class="card" id="form-card">
         <h2 id="form-title" style="margin: 0 0 15px; font-size: 15px;">Gestionar Producto</h2>
         <input type="hidden" id="edit-id">
-        <label>Nombre del Producto</label><input type="text" id="p-nombre">
+        <label>Nombre del Producto</label><input type="text" id="p-nombre" placeholder="Ej. Camisa Deportiva">
         <div style="display: flex; gap: 10px;">
-            <div style="flex:1"><label>Precio</label><input type="number" id="p-precio"></div>
-            <div style="flex:1"><label>Stock</label><input type="number" id="p-stock"></div>
+            <div style="flex:1"><label>Precio</label><input type="number" id="p-precio" placeholder="0.00"></div>
+            <div style="flex:1"><label>Stock</label><input type="number" id="p-stock" placeholder="0"></div>
         </div>
-        <label>Categoría</label><select id="p-categoria"><option value="Externo">...</option></select>
-        <label>Descripción</label><textarea id="p-desc" rows="2"></textarea>
+        <label>Descripción</label><textarea id="p-desc" rows="2" placeholder="Detalles del producto..."></textarea>
         
-        <!-- NUEVO: SUBIDA DE IMÁGENES INTERNA Y GRATUITA -->
         <label>Imágenes del Producto (Máx 3)</label>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
             <label for="p-file-input" class="btn" style="background: #e2e8f0; color: var(--oscuro); margin:0; cursor: pointer; text-align: center; flex: 1; padding: 12px; font-size: 12px;">
@@ -200,7 +197,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAKCsoaFZ566UlgM1TeVqWNeOljroaP8VA",
@@ -280,7 +277,6 @@
         snap.forEach(async (d) => { await updateDoc(doc(db, "socios", d.id), { fotoPerfil: foto }); notify("Foto actualizada"); });
     };
 
-    // LÓGICA DE CARGA DE IMÁGENES DE PRODUCTO INTERNAS
     document.getElementById('p-file-input').onchange = async (e) => {
         const files = e.target.files;
         if (!files.length) return;
@@ -361,7 +357,6 @@
             imagenes: imagenesTemporales,
             waVendedor: sesion.celular, 
             tienda: sesion.tienda,
-            categoria: document.getElementById('p-categoria').value,
             fecha: serverTimestamp()
         };
         if(idEdit) await updateDoc(doc(db, "productos", idEdit), datos);
@@ -396,7 +391,6 @@
         const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
         document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
 
-        // SKELETON EN INVENTARIO AL CARGAR
         const lista = document.getElementById('lista-productos');
         lista.innerHTML = `
             <div class="skeleton-card"><div class="skeleton" style="width:55px; height:55px;"></div><div style="flex:1"><div class="skeleton" style="height:14px; width:70%; margin-bottom:6px;"></div><div class="skeleton" style="height:10px; width:40%;"></div></div></div>
@@ -438,11 +432,13 @@
             }
 
             prods.forEach(p => {
+                const descSegura = (p.descripcion || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const nombreSeguro = (p.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 lista.innerHTML += `
                     <div class="prod-card">
                         <img src="${p.imagen}">
                         <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
-                        <button onclick="prepararEdit('${p.id}','${p.nombre}',${p.precio},${p.stock},'${p.descripcion.replace(/'/g, "\\'")}','${p.categoria}', ${JSON.stringify(p.imagenes || [p.imagen])})"><i class="fas fa-edit"></i></button>
+                        <button onclick="prepararEdit('${p.id}', '${nombreSeguro}', ${p.precio}, ${p.stock}, '${descSegura}', ${JSON.stringify(p.imagenes || [p.imagen]).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>
                         <button onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
@@ -457,7 +453,7 @@
         document.getElementById('btn-main').disabled = bloqueado;
     }
 
-    window.prepararEdit = (id, n, p, s, d, cat, imgsArray) => {
+    window.prepararEdit = (id, n, p, s, d, imgsArray) => {
         document.getElementById('edit-id').value = id;
         document.getElementById('form-title').innerText = "Editar Producto";
         document.getElementById('btn-main').innerText = "ACTUALIZAR CAMBIOS";
@@ -465,7 +461,6 @@
         document.getElementById('p-precio').value = p;
         document.getElementById('p-stock').value = s;
         document.getElementById('p-desc').value = d;
-        document.getElementById('p-categoria').value = cat;
         
         imagenesTemporales = imgsArray || [];
         renderizarPrevisualizaciones();
@@ -492,14 +487,6 @@
         document.getElementById('contador-img').innerText = '0';
         bloquearSegunPlan();
     }
-
-    onSnapshot(query(collection(db, "categorias"), orderBy("fecha", "asc")), (snap) => {
-        const sel = document.getElementById('p-categoria');
-        if(sel) {
-            sel.innerHTML = '<option value="Externo">Categoría...</option>';
-            snap.forEach(d => { sel.innerHTML += `<option value="${d.data().nombre}">${d.data().nombre}</option>`; });
-        }
-    });
 
     if(sesion) initPanel(); else switchView('view-login');
 </script>
