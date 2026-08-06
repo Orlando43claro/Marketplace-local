@@ -33,7 +33,7 @@
         .price { font-size: 16px; font-weight: 800; color: var(--rojo); margin: 5px 0; display: block; }
 
         .card-action { padding: 0 8px 12px; }
-        .btn-add-ask { background: var(--oscuro); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-add-ask { background: var(--oscuro); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: background 0.2s; }
 
         .shop-blocked { background: #95a5a6 !important; pointer-events: none !important; opacity: 0.6; }
 
@@ -223,7 +223,7 @@
                             <span class="price">$${Number(p.precio).toLocaleString()}</span>
                         </div>
                         <div class="card-action">
-                            <button class="btn-add-ask ${blockClass}" onclick="addToCartDirect('${pData}')">Añadir para preguntar</button>
+                            <button class="btn-add-ask ${blockClass}" onclick="addToCartDirect(this, '${pData}')">Añadir para preguntar</button>
                         </div>
                     `;
                     grid.appendChild(card);
@@ -245,21 +245,45 @@
         document.getElementById('product-modal').style.display = 'block';
     }
 
-    window.addToCartDirect = (encodedData) => {
+    window.addToCartDirect = (btnElement, encodedData) => {
         if(isBlocked) return;
         const p = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
+        
+        const existe = cart.some(item => item.id === p.id);
+        if (existe) {
+            btnElement.innerText = "¡ESTE PRODUCTO YA ESTÁ AÑADIDO!";
+            btnElement.style.background = "#d91e18";
+            setTimeout(() => { 
+                btnElement.innerText = "AÑADIR PARA PREGUNTAR"; 
+                btnElement.style.background = "#232f3e"; 
+            }, 1500);
+            return;
+        }
+
         cart.push(p);
         updateCartUI();
-        const btn = event.target;
-        btn.innerText = "¡AÑADIDO!";
-        btn.style.background = "#25d366";
-        setTimeout(() => { btn.innerText = "AÑADIR PARA PREGUNTAR"; btn.style.background = "#232f3e"; }, 800);
+        btnElement.innerText = "¡AÑADIDO!";
+        btnElement.style.background = "#25d366";
+        setTimeout(() => { btnElement.innerText = "AÑADIR PARA PREGUNTAR"; btnElement.style.background = "#232f3e"; }, 800);
     }
 
     window.closeModal = () => document.getElementById('product-modal').style.display = 'none';
 
     document.getElementById('add-to-cart-modal').onclick = () => {
         if(isBlocked) return;
+        
+        const existe = cart.some(item => item.id === currentProduct.id);
+        if (existe) {
+            const modalBtn = document.getElementById('add-to-cart-modal');
+            modalBtn.innerText = "¡YA ESTÁ EN EL CARRITO!";
+            modalBtn.style.background = "#d91e18";
+            setTimeout(() => { 
+                modalBtn.innerText = "AÑADIR PARA PREGUNTAR"; 
+                modalBtn.style.background = "#232f3e"; 
+            }, 1500);
+            return;
+        }
+
         cart.push(currentProduct);
         updateCartUI();
         closeModal();
@@ -308,7 +332,6 @@
         
         window.open(`https://wa.me/${storeId}?text=${m}`, '_blank');
         
-        // Vaciar carrito, actualizar interfaz, cerrar panel y regresar a la tienda
         cart = [];
         updateCartUI();
         toggleCart(false);
