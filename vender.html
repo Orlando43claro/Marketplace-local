@@ -190,6 +190,7 @@
         <div id="preview-imgs-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;"></div>
 
         <button id="btn-main" class="btn btn-naranja" onclick="guardarProducto()">GUARDAR PRODUCTO</button>
+        <button id="btn-cancel-edit" class="btn" style="background:#64748b; color:white; margin-top:8px; display:none;" onclick="resetForm()">CANCELAR EDICIÓN</button>
     </div>
 
     <div id="inventario" style="margin-top: 25px;"><div id="lista-productos"></div></div>
@@ -214,6 +215,7 @@
     let idParaBorrar = null;
     let fotoPerfilOptimizada = "";
     let imagenesTemporales = [];
+    let productosCache = {}; 
     let esPRO = false;
     let totalProductos = 0;
     let visitasActuales = -1; 
@@ -404,8 +406,11 @@
                 esPRO = (d.plan === "pro");
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
+                
+                // Actualiza visualmente las vistas y los clics (interesados) en tiempo real
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
                 document.getElementById('stat-clics').innerText = d.clics || 0;
+
                 const badge = document.getElementById('plan-badge');
                 if(esPRO) { 
                     badge.innerHTML = `<i class="fas fa-crown"></i> VENDEDOR VERIFICADO PRO`; 
@@ -423,8 +428,11 @@
         onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
             totalProductos = snap.size;
             lista.innerHTML = '';
+            productosCache = {}; 
             let prods = [];
-            snap.forEach(d => prods.push({id: d.id, ...d.data()}));
+            snap.forEach(d => {
+                prods.push({id: d.id, ...d.data()});
+            });
             prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
             
             if(prods.length === 0) {
@@ -432,13 +440,12 @@
             }
 
             prods.forEach(p => {
-                const descSegura = (p.descripcion || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                const nombreSeguro = (p.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                productosCache[p.id] = p; 
                 lista.innerHTML += `
                     <div class="prod-card">
                         <img src="${p.imagen}">
                         <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
-                        <button onclick="prepararEdit('${p.id}', '${nombreSeguro}', ${p.precio}, ${p.stock}, '${descSegura}', ${JSON.stringify(p.imagenes || [p.imagen]).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>
+                        <button onclick="prepararEdit('${p.id}')"><i class="fas fa-edit"></i></button>
                         <button onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
@@ -453,19 +460,24 @@
         document.getElementById('btn-main').disabled = bloqueado;
     }
 
-    window.prepararEdit = (id, n, p, s, d, imgsArray) => {
+    window.prepararEdit = (id) => {
+        const p = productosCache[id];
+        if(!p) return notify("Error al cargar producto");
+
         document.getElementById('edit-id').value = id;
         document.getElementById('form-title').innerText = "Editar Producto";
         document.getElementById('btn-main').innerText = "ACTUALIZAR CAMBIOS";
-        document.getElementById('p-nombre').value = n;
-        document.getElementById('p-precio').value = p;
-        document.getElementById('p-stock').value = s;
-        document.getElementById('p-desc').value = d;
+        document.getElementById('btn-cancel-edit').style.display = 'block';
         
-        imagenesTemporales = imgsArray || [];
+        document.getElementById('p-nombre').value = p.nombre || '';
+        document.getElementById('p-precio').value = p.precio || '';
+        document.getElementById('p-stock').value = p.stock || '';
+        document.getElementById('p-desc').value = p.descripcion || '';
+        
+        imagenesTemporales = p.imagenes || (p.imagen ? [p.imagen] : []);
         renderizarPrevisualizaciones();
 
-        window.scrollTo(0,0);
+        window.scrollTo({top: 0, behavior: 'smooth'});
         bloquearSegunPlan();
     };
 
@@ -477,16 +489,17 @@
     window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
     window.logout = () => { localStorage.clear(); window.location.reload(); };
 
-    function resetForm() {
+    window.resetForm = () => {
         document.getElementById('edit-id').value = '';
         document.getElementById('form-title').innerText = "Gestionar Producto";
         document.getElementById('btn-main').innerText = "GUARDAR PRODUCTO";
+        document.getElementById('btn-cancel-edit').style.display = 'none';
         document.querySelectorAll('#view-vender input:not([type=file]), #view-vender textarea').forEach(i => i.value = '');
         imagenesTemporales = [];
         document.getElementById('preview-imgs-container').innerHTML = '';
         document.getElementById('contador-img').innerText = '0';
         bloquearSegunPlan();
-    }
+    };
 
     if(sesion) initPanel(); else switchView('view-login');
 </script>
