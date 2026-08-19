@@ -146,26 +146,14 @@
     let currentProduct = null;
     let isBlocked = false;
 
-    function parsearFecha(f) {
-        if (!f) return null;
-        if (typeof f.toDate === 'function') return f.toDate().getTime();
-        if (f instanceof Date) return f.getTime();
-        if (typeof f === 'number') return f;
+    // Función auxiliar para parsear la fecha de registro correctamente
+    function parsearFecha(fechaFB) {
+        if (!fechaFB) return null;
+        if (typeof fechaFB.toDate === 'function') return fechaFB.toDate().getTime();
+        if (fechaFB instanceof Date) return fechaFB.getTime();
+        if (typeof fechaFB === 'number') return fechaFB;
+        if (typeof fechaFB === 'string') return new Date(fechaFB).getTime();
         return null;
-    }
-
-    function verificarEstadoPlan(data) {
-        if (data.plan === 'pro') return false; // Plan PRO nunca se bloquea
-
-        const fechaReg = parsearFecha(data.fecha);
-        if (fechaReg) {
-            const ahora = new Date().getTime();
-            const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
-            if ((ahora - fechaReg) >= diezDiasMs) {
-                return true; // Expirado (Pasaron 10 días gratis)
-            }
-        }
-        return false;
     }
 
     async function start() {
@@ -181,8 +169,23 @@
             if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
             document.getElementById('display-badge').innerHTML = storeData.plan === 'pro' ? '<span class="badge-mini">VERIFICADO 👑</span>' : '';
 
-            // Verificar si el periodo gratis de 10 días ya venció
-            isBlocked = verificarEstadoPlan(storeData);
+            // --- LÓGICA DE BLOQUEO CORREGIDA ---
+            isBlocked = false; // Por defecto, activa.
+
+            if (storeData.plan === 'gratis') {
+                const fechaRegistro = parsearFecha(storeData.fecha);
+                
+                if (fechaRegistro) {
+                    const ahora = new Date().getTime();
+                    const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
+                    
+                    // Solo bloquea si el tiempo actual superó los 10 días de prueba
+                    if ((ahora - fechaRegistro) >= diezDiasMs) {
+                        isBlocked = true;
+                    }
+                }
+            }
+            // Si el plan es 'pro', isBlocked se mantiene false.
 
             if (isBlocked) {
                 document.getElementById('bloqueo-aviso').style.display = 'block';
@@ -195,6 +198,7 @@
                 document.getElementById('add-to-cart-modal').classList.remove('shop-blocked');
                 document.getElementById('final-send-btn').classList.remove('shop-blocked');
             }
+            // --- FIN LÓGICA DE BLOQUEO ---
 
             // Incrementar vistas de la tienda
             try {
