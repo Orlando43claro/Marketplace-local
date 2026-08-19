@@ -144,7 +144,7 @@
     let storeDocId = null;
     let cart = [];
     let currentProduct = null;
-    let isBlocked = false;
+    let isBlocked = false; // Nueva bandera de bloqueo por tiempo
 
     // Función auxiliar para parsear la fecha de registro correctamente
     function parsearFecha(fechaFB) {
@@ -169,9 +169,12 @@
             if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
             document.getElementById('display-badge').innerHTML = storeData.plan === 'pro' ? '<span class="badge-mini">VERIFICADO 👑</span>' : '';
 
-            // --- LÓGICA DE BLOQUEO CORREGIDA ---
-            isBlocked = false; // Por defecto, activa.
+            // --- LÓGICA DE BLOQUEO POR TIEMPO ---
+            // Se eliminó la lógica de bloqueo por cantidad de productos.
 
+            isBlocked = false; // Por defecto, la tienda está activa.
+
+            // Si el plan es gratis, verificamos si ya expiró (10 días)
             if (storeData.plan === 'gratis') {
                 const fechaRegistro = parsearFecha(storeData.fecha);
                 
@@ -185,14 +188,16 @@
                     }
                 }
             }
-            // Si el plan es 'pro', isBlocked se mantiene false.
+            // Si el plan es 'pro', isBlocked se mantiene false, por lo que nunca se bloquea.
 
             if (isBlocked) {
+                // Mostrar aviso de bloqueo y deshabilitar carrito
                 document.getElementById('bloqueo-aviso').style.display = 'block';
                 document.getElementById('header-cart-btn').style.display = 'none';
                 document.getElementById('add-to-cart-modal').classList.add('shop-blocked');
                 document.getElementById('final-send-btn').classList.add('shop-blocked');
             } else {
+                // Tienda activa
                 document.getElementById('bloqueo-aviso').style.display = 'none';
                 document.getElementById('header-cart-btn').style.display = 'flex';
                 document.getElementById('add-to-cart-modal').classList.remove('shop-blocked');
@@ -211,6 +216,7 @@
         });
 
         const qProd = query(collection(db, "productos"), where("waVendedor", "==", storeId));
+        // Snapshot para productos (ilimitados durante la prueba)
         onSnapshot(qProd, (snapshot) => {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
@@ -225,6 +231,7 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     const pData = btoa(unescape(encodeURIComponent(JSON.stringify(p)))); 
+                    // Usamos la bandera isBlocked para deshabilitar botones
                     const blockClass = isBlocked ? 'shop-blocked' : '';
                     
                     const listaImgs = (p.imagenes && p.imagenes.length > 0) ? p.imagenes : [p.imagen];
@@ -285,7 +292,7 @@
     }
 
     window.addToCartDirect = async (btnElement, encodedData) => {
-        if(isBlocked) return;
+        if(isBlocked) return; // Bloqueo por plan caducado
         const p = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
         
         const existe = cart.some(item => item.id === p.id);
@@ -321,7 +328,7 @@
     window.closeModal = () => document.getElementById('product-modal').style.display = 'none';
 
     document.getElementById('add-to-cart-modal').onclick = async () => {
-        if(isBlocked) return;
+        if(isBlocked) return; // Bloqueo por plan caducado
         
         const existe = cart.some(item => item.id === currentProduct.id);
         if (existe) {
@@ -382,10 +389,13 @@
     }
 
     window.remove = (i) => { cart.splice(i,1); updateCartUI(); }
-    window.toggleCart = (s) => { if(isBlocked && s) return; document.getElementById('cart-panel').style.display = s ? 'flex' : 'none'; }
+    window.toggleCart = (s) => { 
+        if(isBlocked && s) return; // No abrir carrito si está bloqueada
+        document.getElementById('cart-panel').style.display = s ? 'flex' : 'none'; 
+    }
 
     window.sendOrder = () => {
-        if(isBlocked || cart.length === 0) return;
+        if(isBlocked || cart.length === 0) return; // Bloqueo o carrito vacío
         let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
         let t = 0;
         cart.forEach(i => { m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`; t += Number(i.precio); });
