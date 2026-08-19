@@ -25,7 +25,10 @@
         .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 13px; text-decoration: none; display: inline-block; text-align: center; }
         .btn-naranja { background: var(--naranja); color: white; box-shadow: 0 4px 15px rgba(255,107,0,0.2); }
         .btn-logout { background: #fee2e2; color: var(--rojo); padding: 8px 12px; width: auto; font-size: 10px; font-weight: 800; border-radius: 10px; border: none; cursor: pointer; }
-        .btn-share { background: #e0f2fe; color: var(--azul); padding: 12px; border-radius: 15px; border: 2px dashed var(--azul); width: 100%; font-size: 11px; font-weight: 800; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .action-buttons { display: flex; gap: 8px; margin-bottom: 15px; }
+        .btn-share { background: #e0f2fe; color: var(--azul); padding: 12px; border-radius: 15px; border: 1.5px dashed var(--azul); flex: 1; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-ver-tienda { background: #e6f4ea; color: #137333; padding: 12px; border-radius: 15px; border: 1.5px solid #ceead6; flex: 1; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
 
         .modal-confirm { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
         .modal-card { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 340px; text-align: center; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; max-height: 90vh; overflow-y: auto; }
@@ -40,7 +43,11 @@
         .step { background: #f0f7ff; padding: 8px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #e1effe; }
 
         .bloqueo-pro { background: #fff5eb; border: 2px solid var(--naranja); padding: 20px; border-radius: 25px; text-align: center; margin-bottom: 20px; }
-        .form-locked { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+        .form-locked { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-box input { padding-left: 35px; background: white; border: 1px solid #cbd5e1; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; }
 
         .prod-card { background: white; padding: 10px; border-radius: 18px; margin-top: 10px; display: flex; gap: 12px; align-items: center; border: 1px solid #eee; }
         .prod-card img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; }
@@ -55,6 +62,7 @@
         .stat-divider { width: 1px; background: #edf2f7; margin: 0 10px; }
 
         .pro-tag-dorado { background: var(--dorado-grad) !important; color: #000 !important; font-weight: 900 !important; padding: 4px 10px !important; border-radius: 8px !important; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(184, 134, 11, 0.3); border: 1px solid #d4af37; font-size: 10px; }
+        .badge-gratis { background: #e2e8f0; color: #475569; font-weight: 800; padding: 4px 10px; border-radius: 8px; font-size: 10px; display: inline-block; }
         .timer-pro { font-size: 11px; color: #b8860b; font-weight: 700; margin-top: 4px; display: block; }
 
         @keyframes shimmer {
@@ -145,15 +153,21 @@
                 </div>
                 <div>
                     <span id="header-tienda" style="font-weight:900; color:var(--oscuro); font-size:14px;">...</span><br>
-                    <span id="plan-badge" class="badge-plan"></span>
+                    <span id="plan-badge" class="badge-gratis">GRATIS</span>
                     <span id="contador-pro" class="timer-pro" style="display:none;"></span>
                 </div>
             </div>
             <button class="btn-logout" onclick="logout()">SALIR</button>
         </div>
-        <button class="btn-share" onclick="copiarLinkTienda()">
-            <i class="fas fa-link"></i> COPIAR LINK TIENDA
-        </button>
+
+        <div class="action-buttons">
+            <button class="btn-share" onclick="copiarLinkTienda()">
+                <i class="fas fa-link"></i> COPIAR LINK
+            </button>
+            <a id="btn-ver-tienda-link" href="#" target="_blank" class="btn-ver-tienda">
+                <i class="fas fa-store"></i> VER MI TIENDA
+            </a>
+        </div>
     </div>
 
     <div class="stats-container">
@@ -163,9 +177,9 @@
     </div>
 
     <div id="mensaje-limite" class="bloqueo-pro" style="display: none;">
-        <p style="font-size: 12px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ PRODUCTOS LÍMITE (4/4)</p>
-        <p style="font-size: 10px; color: #64748b; margin: 8px 0 15px;">Has alcanzado el límite gratuito. Pasa a PRO para añadir más productos.</p>
-        <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 10px;">
+        <p style="font-size: 13px; font-weight: 900; color: var(--rojo); margin: 0;">⚠️ TIEMPO GRATIS AGOTADO (10 DÍAS)</p>
+        <p style="font-size: 11px; color: #64748b; margin: 8px 0 15px;">Tu prueba gratuita finalizó. Activa el Plan PRO para seguir gestionando y mostrando tus productos a los clientes.</p>
+        <a id="btn-wa-pro" href="#" target="_blank" class="btn btn-naranja" style="font-size: 11px; padding: 12px;">
             <i class="fab fa-whatsapp"></i> ACTIVAR TIENDA PRO
         </a>
     </div>
@@ -193,7 +207,13 @@
         <button id="btn-cancel-edit" class="btn" style="background:#64748b; color:white; margin-top:8px; display:none;" onclick="resetForm()">CANCELAR EDICIÓN</button>
     </div>
 
-    <div id="inventario" style="margin-top: 25px;"><div id="lista-productos"></div></div>
+    <div id="inventario" style="margin-top: 15px;">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="p-search" placeholder="Buscar mi producto por nombre..." oninput="filtrarProductosLocales()">
+        </div>
+        <div id="lista-productos"></div>
+    </div>
 </div>
 
 <script type="module">
@@ -216,18 +236,22 @@
     let fotoPerfilOptimizada = "";
     let imagenesTemporales = [];
     let productosCache = {}; 
+    let todosMisProductos = [];
     let esPRO = false;
-    let totalProductos = 0;
+    let esGratisExpirado = false;
     let visitasActuales = -1; 
-    const LIMITE_GRATIS = 4;
 
     window.cerrarGuiaDefinitivo = () => {
         document.getElementById('guia-inicio').style.display = 'none';
         if(sesion) localStorage.setItem('guia_oculta_' + sesion.celular, 'true');
     };
 
+    function obtenerUrlTienda() {
+        return `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
+    }
+
     window.copiarLinkTienda = async () => {
-        const urlLarga = `https://orlando43claro.github.io/expressmarket1/ver-tienda.html?id=${sesion.celular}`;
+        const urlLarga = obtenerUrlTienda();
         try {
             await navigator.clipboard.writeText(urlLarga);
             notify("✅ ¡Link copiado con éxito!");
@@ -367,40 +391,75 @@
         resetForm();
     };
 
-    let intervalTimer;
-    function parsearFechaPago(fechaPagoFB) {
-        if (!fechaPagoFB) return null;
-        if (typeof fechaPagoFB.toDate === 'function') return fechaPagoFB.toDate().getTime();
-        if (fechaPagoFB instanceof Date) return fechaPagoFB.getTime();
-        if (typeof fechaPagoFB === 'number') return fechaPagoFB;
-        if (typeof fechaPagoFB === 'string') return new Date(fechaPagoFB).getTime();
+    function parsearFecha(f) {
+        if (!f) return null;
+        if (typeof f.toDate === 'function') return f.toDate().getTime();
+        if (f instanceof Date) return f.getTime();
+        if (typeof f === 'number') return f;
         return null;
     }
 
-    function actualizarContadorReal(esActivado, fechaPagoFB) {
+    let intervalTimer;
+    function calcularDiasPlan(data) {
         const contElement = document.getElementById('contador-pro');
+        const badge = document.getElementById('plan-badge');
         clearInterval(intervalTimer);
-        const inicio = parsearFechaPago(fechaPagoFB);
 
-        if (!esActivado || !inicio) { contElement.style.display = 'none'; return; }
-        contElement.style.display = 'block';
-        
-        const tick = () => {
-            const ahora = new Date().getTime();
-            const diff = ahora - inicio;
-            const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const segundos = Math.floor((diff % (1000 * 60)) / 1000);
-            contElement.innerHTML = `<i class="fas fa-history"></i> Pro: ${dias}d ${horas}h ${minutos}m ${segundos}s (Día ${dias + 1}/30)`;
-        };
-        intervalTimer = setInterval(tick, 1000);
-        tick();
+        if (data.plan === "pro" && data.fechaPago) {
+            esPRO = true;
+            esGratisExpirado = false;
+            badge.innerHTML = `<i class="fas fa-crown"></i> VENDEDOR VERIFICADO PRO`; 
+            badge.className = "pro-tag-dorado"; 
+            contElement.style.display = 'block';
+
+            const tick = () => {
+                const ahora = new Date().getTime();
+                const inicio = parsearFecha(data.fechaPago);
+                if(!inicio) return;
+                const diff = ahora - inicio;
+                const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                contElement.innerHTML = `<i class="fas fa-history"></i> Pro: Día ${dias + 1}/30 (${horas}h ${minutos}m)`;
+            };
+            intervalTimer = setInterval(tick, 60000);
+            tick();
+        } else {
+            esPRO = false;
+            contElement.style.display = 'none';
+            const fechaReg = parsearFecha(data.fecha);
+
+            if (fechaReg) {
+                const ahora = new Date().getTime();
+                const diffMs = ahora - fechaReg;
+                const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
+                const diaActual = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+                if (diffMs >= diezDiasMs) {
+                    esGratisExpirado = true;
+                    badge.innerText = `GRATIS (AGOTADO)`;
+                    badge.className = "badge-gratis";
+                    badge.style.background = "var(--rojo)";
+                    badge.style.color = "white";
+                } else {
+                    esGratisExpirado = false;
+                    badge.innerText = `GRATIS (Día ${diaActual} de 10)`;
+                    badge.className = "badge-gratis";
+                }
+            } else {
+                badge.innerText = `GRATIS (Prueba 10 días)`;
+                badge.className = "badge-gratis";
+                esGratisExpirado = false;
+            }
+        }
+        bloquearSegunPlan();
     }
 
     function initPanel() {
         switchView('view-vender');
         if(!localStorage.getItem('guia_oculta_' + sesion.celular)) document.getElementById('guia-inicio').style.display = 'block';
+        
+        document.getElementById('btn-ver-tienda-link').href = obtenerUrlTienda();
         const msg = encodeURIComponent(`Hola, deseo activar mi suscripción PRO en YaMi para la tienda: ${sesion.tienda} (${sesion.celular})`);
         document.getElementById('btn-wa-pro').href = `https://wa.me/573155445183?text=${msg}`;
 
@@ -414,64 +473,64 @@
                 const d = doc.data();
                 if(visitasActuales !== -1 && d.visitas > visitasActuales) notify("🔥 ¡Alguien está viendo tu tienda!");
                 visitasActuales = d.visitas;
-                esPRO = (d.plan === "pro");
+                
                 document.getElementById('header-tienda').innerText = d.nombreTienda;
                 if(d.fotoPerfil) document.getElementById('panel-logo-box').innerHTML = `<img src="${d.fotoPerfil}">`;
                 
-                // Actualiza visualmente las vistas y los clics (interesados) en tiempo real
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
                 document.getElementById('stat-clics').innerText = d.clics || 0;
 
-                const badge = document.getElementById('plan-badge');
-                if(esPRO) { 
-                    badge.innerHTML = `<i class="fas fa-crown"></i> VENDEDOR VERIFICADO PRO`; 
-                    badge.className = "pro-tag-dorado"; 
-                    actualizarContadorReal(true, d.fechaPago);
-                } else { 
-                    badge.innerText = `GRATIS (${totalProductos}/${LIMITE_GRATIS})`; 
-                    badge.className = "badge-plan gratis-tag"; 
-                    actualizarContadorReal(false, null);
-                }
-                bloquearSegunPlan();
+                calcularDiasPlan(d);
             });
         });
 
         onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
-            totalProductos = snap.size;
-            lista.innerHTML = '';
+            todosMisProductos = [];
             productosCache = {}; 
-            let prods = [];
             snap.forEach(d => {
-                prods.push({id: d.id, ...d.data()});
+                todosMisProductos.push({id: d.id, ...d.data()});
             });
-            prods.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
-            
-            if(prods.length === 0) {
-                lista.innerHTML = '<p style="text-align:center; color:#999; font-size:12px; padding:15px;">No tienes productos aún.</p>';
-            }
-
-            prods.forEach(p => {
-                productosCache[p.id] = p; 
-                lista.innerHTML += `
-                    <div class="prod-card">
-                        <img src="${p.imagen}">
-                        <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
-                        <button onclick="prepararEdit('${p.id}')"><i class="fas fa-edit"></i></button>
-                        <button onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
-                    </div>`;
-            });
-            bloquearSegunPlan();
+            todosMisProductos.sort((a,b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0));
+            renderizarProductos(todosMisProductos);
         });
     }
 
+    function renderizarProductos(listaProds) {
+        const lista = document.getElementById('lista-productos');
+        lista.innerHTML = '';
+
+        if(listaProds.length === 0) {
+            lista.innerHTML = '<p style="text-align:center; color:#999; font-size:12px; padding:15px;">No se encontraron productos.</p>';
+            return;
+        }
+
+        listaProds.forEach(p => {
+            productosCache[p.id] = p; 
+            lista.innerHTML += `
+                <div class="prod-card">
+                    <img src="${p.imagen}">
+                    <div style="flex:1"><b>${p.nombre}</b><br><small>$${p.precio}</small></div>
+                    <button onclick="prepararEdit('${p.id}')"><i class="fas fa-edit"></i></button>
+                    <button onclick="abrirModalDel('${p.id}')"><i class="fas fa-trash"></i></button>
+                </div>`;
+        });
+    }
+
+    window.filtrarProductosLocales = () => {
+        const texto = document.getElementById('p-search').value.toLowerCase().trim();
+        const filtrados = todosMisProductos.filter(p => (p.nombre || '').toLowerCase().includes(texto));
+        renderizarProductos(filtrados);
+    };
+
     function bloquearSegunPlan() {
-        const bloqueado = (!esPRO && totalProductos >= LIMITE_GRATIS && !document.getElementById('edit-id').value);
-        document.getElementById('mensaje-limite').style.display = bloqueado ? 'block' : 'none';
-        document.getElementById('form-card').classList.toggle('form-locked', bloqueado);
-        document.getElementById('btn-main').disabled = bloqueado;
+        const estaBloqueado = esGratisExpirado && !esPRO;
+        document.getElementById('mensaje-limite').style.display = estaBloqueado ? 'block' : 'none';
+        document.getElementById('form-card').classList.toggle('form-locked', estaBloqueado);
+        document.getElementById('btn-main').disabled = estaBloqueado;
     }
 
     window.prepararEdit = (id) => {
+        if(esGratisExpirado && !esPRO) return notify("Debes pasar a PRO para editar tu catálogo");
         const p = productosCache[id];
         if(!p) return notify("Error al cargar producto");
 
@@ -489,10 +548,13 @@
         renderizarPrevisualizaciones();
 
         window.scrollTo({top: 0, behavior: 'smooth'});
-        bloquearSegunPlan();
     };
 
-    window.abrirModalDel = (id) => { idParaBorrar = id; document.getElementById('confirm-del-modal').style.display = 'flex'; };
+    window.abrirModalDel = (id) => { 
+        if(esGratisExpirado && !esPRO) return notify("Tu plan ha caducado");
+        idParaBorrar = id; 
+        document.getElementById('confirm-del-modal').style.display = 'flex'; 
+    };
     window.cerrarModalDel = () => { document.getElementById('confirm-del-modal').style.display = 'none'; };
     document.getElementById('confirm-yes').onclick = async () => { if(idParaBorrar) await deleteDoc(doc(db, "productos", idParaBorrar)); cerrarModalDel(); };
 
