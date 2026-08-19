@@ -147,7 +147,6 @@
     function parsearFecha(fechaFB) {
         if (!fechaFB) return null;
         if (typeof fechaFB.toDate === 'function') return fechaFB.toDate().getTime();
-        if (fechaFB.seconds) return fechaFB.seconds * 1000;
         if (fechaFB instanceof Date) return fechaFB.getTime();
         if (typeof fechaFB === 'number') return fechaFB;
         if (typeof fechaFB === 'string') return new Date(fechaFB).getTime();
@@ -157,47 +156,53 @@
     async function start() {
         if (!storeId) return;
         
-        onSnapshot(query(collection(db, "socios"), where("celular", "==", storeId)), (snapSocio) => {
-            snapSocio.forEach(async (documentSnap) => {
-                storeDocId = documentSnap.id;
-                storeData = documentSnap.data();
-                document.getElementById('display-name').innerText = storeData.nombreTienda;
-                if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
-                document.getElementById('display-badge').innerHTML = storeData.plan === 'pro' ? '<span class="badge-mini">VERIFICADO 👑</span>' : '';
+        const qSocio = query(collection(db, "socios"), where("celular", "==", storeId));
+        const snapSocio = await getDocs(qSocio);
+        
+        snapSocio.forEach(async (documentSnap) => {
+            storeDocId = documentSnap.id;
+            storeData = documentSnap.data();
+            document.getElementById('display-name').innerText = storeData.nombreTienda;
+            if(storeData.fotoPerfil) document.getElementById('store-logo-container').innerHTML = `<img src="${storeData.fotoPerfil}">`;
 
-                isBlocked = false;
+            const ahora = new Date().getTime();
+            const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
+            isBlocked = false;
 
-                if (storeData.plan === 'gratis') {
-                    const fechaRegistro = parsearFecha(storeData.fecha);
-                    
-                    if (fechaRegistro) {
-                        const ahora = new Date().getTime();
-                        const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
-                        
-                        if ((ahora - fechaRegistro) >= diezDiasMs) {
-                            isBlocked = true;
-                        }
-                    }
-                }
-
-                if (isBlocked) {
-                    document.getElementById('bloqueo-aviso').style.display = 'block';
-                    document.getElementById('header-cart-btn').style.display = 'none';
-                    document.getElementById('add-to-cart-modal').classList.add('shop-blocked');
-                    document.getElementById('final-send-btn').classList.add('shop-blocked');
+            if (storeData.plan === 'pro') {
+                const fechaVencPro = parsearFecha(storeData.fechaVencimientoPro);
+                if (!fechaVencPro || ahora >= fechaVencPro) {
+                    isBlocked = true; // Plan PRO de 30 días vencido
                 } else {
-                    document.getElementById('bloqueo-aviso').style.display = 'none';
-                    document.getElementById('header-cart-btn').style.display = 'flex';
-                    document.getElementById('add-to-cart-modal').classList.remove('shop-blocked');
-                    document.getElementById('final-send-btn').classList.remove('shop-blocked');
+                    document.getElementById('display-badge').innerHTML = '<span class="badge-mini">VERIFICADO 👑</span>';
                 }
-            });
-        });
+            } else {
+                // Plan Gratis: 10 DÍAS ÚNICOS desde la fecha de registro original
+                const fechaRegistroOriginal = parsearFecha(storeData.fechaCreacion || storeData.fecha);
+                if (!fechaRegistroOriginal || (ahora - fechaRegistroOriginal) >= diezDiasMs) {
+                    isBlocked = true; // Si pasaron más de 10 días del registro, bloqueado para siempre
+                }
+            }
 
-        const qSocioOnce = query(collection(db, "socios"), where("celular", "==", storeId));
-        const snapOnce = await getDocs(qSocioOnce);
-        snapOnce.forEach(async (d) => {
-            try { await updateDoc(doc(db, "socios", d.id), { visitas: increment(1) }); } catch(e) {}
+            if (isBlocked) {
+                document.getElementById('bloqueo-aviso').style.display = 'block';
+                document.getElementById('header-cart-btn').style.display = 'none';
+                document.getElementById('add-to-cart-modal').classList.add('shop-blocked');
+                document.getElementById('final-send-btn').classList.add('shop-blocked');
+            } else {
+                document.getElementById('bloqueo-aviso').style.display = 'none';
+                document.getElementById('header-cart-btn').style.display = 'flex';
+                document.getElementById('add-to-cart-modal').classList.remove('shop-blocked');
+                document.getElementById('final-send-btn').classList.remove('shop-blocked');
+            }
+
+            try {
+                await updateDoc(doc(db, "socios", storeDocId), {
+                    visitas: increment(1)
+                });
+            } catch (err) {
+                console.error("Error al registrar visita:", err);
+            }
         });
 
         const qProd = query(collection(db, "productos"), where("waVendedor", "==", storeId));
@@ -293,7 +298,13 @@
         updateCartUI();
 
         if (storeDocId) {
-            try { await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) }); } catch (err) {}
+            try {
+                await updateDoc(doc(db, "socios", storeDocId), {
+                    clics: increment(1)
+                });
+            } catch (err) {
+                console.error("Error al actualizar interesados:", err);
+            }
         }
 
         btnElement.innerText = "¡AÑADIDO!";
@@ -322,7 +333,13 @@
         updateCartUI();
 
         if (storeDocId) {
-            try { await updateDoc(doc(db, "socios", storeDocId), { clics: increment(1) }); } catch (err) {}
+            try {
+                await updateDoc(doc(db, "socios", storeDocId), {
+                    clics: increment(1)
+                });
+            } catch (err) {
+                console.error("Error al actualizar interesados:", err);
+            }
         }
 
         closeModal();
@@ -364,7 +381,7 @@
     }
 
     window.sendOrder = () => {
-        if(isBlocked || cart.length === 0) return;
+        if(isBlocked || cart.length === 0) return; 
         let m = `*PEDIDO DESDE YAMI - ${storeData.nombreTienda.toUpperCase()}*%0A%0A`;
         let t = 0;
         cart.forEach(i => { m += `• ${i.nombre} ($${Number(i.precio).toLocaleString()})%0A`; t += Number(i.precio); });
