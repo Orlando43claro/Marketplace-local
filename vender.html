@@ -238,7 +238,7 @@
     let productosCache = {}; 
     let todosMisProductos = [];
     let esPRO = false;
-    let esGratisExpirado = false;
+    let esGratisExpirado = false; // Nueva bandera para el bloqueo
     let visitasActuales = -1; 
 
     window.cerrarGuiaDefinitivo = () => {
@@ -391,6 +391,7 @@
         resetForm();
     };
 
+    // Función auxiliar para parsear la fecha de registro correctamente
     function parsearFecha(f) {
         if (!f) return null;
         if (typeof f.toDate === 'function') return f.toDate().getTime();
@@ -400,18 +401,21 @@
     }
 
     let intervalTimer;
+    // Nueva función para calcular y mostrar el estado del plan
     function calcularDiasPlan(data) {
         const contElement = document.getElementById('contador-pro');
         const badge = document.getElementById('plan-badge');
         clearInterval(intervalTimer);
 
         if (data.plan === "pro" && data.fechaPago) {
+            // Plan PRO activo
             esPRO = true;
             esGratisExpirado = false;
             badge.innerHTML = `<i class="fas fa-crown"></i> VENDEDOR VERIFICADO PRO`; 
             badge.className = "pro-tag-dorado"; 
             contElement.style.display = 'block';
 
+            // Contador PRO (30 días)
             const tick = () => {
                 const ahora = new Date().getTime();
                 const inicio = parsearFecha(data.fechaPago);
@@ -420,11 +424,13 @@
                 const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                // const segundos = Math.floor((diff % (1000 * 60)) / 1000);
                 contElement.innerHTML = `<i class="fas fa-history"></i> Pro: Día ${dias + 1}/30 (${horas}h ${minutos}m)`;
             };
-            intervalTimer = setInterval(tick, 60000);
+            intervalTimer = setInterval(tick, 60000); // Actualiza cada minuto
             tick();
         } else {
+            // Plan Gratis
             esPRO = false;
             contElement.style.display = 'none';
             const fechaReg = parsearFecha(data.fecha);
@@ -436,22 +442,28 @@
                 const diaActual = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
 
                 if (diffMs >= diezDiasMs) {
+                    // Prueba caducada
                     esGratisExpirado = true;
                     badge.innerText = `GRATIS (AGOTADO)`;
                     badge.className = "badge-gratis";
                     badge.style.background = "var(--rojo)";
                     badge.style.color = "white";
                 } else {
+                    // Dentro del periodo de prueba (Ilimitado por ahora)
                     esGratisExpirado = false;
                     badge.innerText = `GRATIS (Día ${diaActual} de 10)`;
                     badge.className = "badge-gratis";
+                    badge.style.background = "#e2e8f0"; // Color por defecto
+                    badge.style.color = "#475569";
                 }
             } else {
+                // Sin fecha de registro (casos antiguos o error)
                 badge.innerText = `GRATIS (Prueba 10 días)`;
                 badge.className = "badge-gratis";
                 esGratisExpirado = false;
             }
         }
+        // Ejecutar bloqueo si es necesario
         bloquearSegunPlan();
     }
 
@@ -468,6 +480,7 @@
             <div class="skeleton-card"><div class="skeleton" style="width:55px; height:55px;"></div><div style="flex:1"><div class="skeleton" style="height:14px; width:70%; margin-bottom:6px;"></div><div class="skeleton" style="height:10px; width:40%;"></div></div></div>
         `;
 
+        // Snapshot Socio para el plan y stats
         onSnapshot(query(collection(db, "socios"), where("celular", "==", sesion.celular)), (snap) => {
             snap.forEach(doc => {
                 const d = doc.data();
@@ -480,10 +493,12 @@
                 document.getElementById('stat-visitas').innerText = d.visitas || 0;
                 document.getElementById('stat-clics').innerText = d.clics || 0;
 
+                // Nueva lógica de cálculo de días y bloqueo
                 calcularDiasPlan(d);
             });
         });
 
+        // Snapshot Productos (Ilimitados, pero el formulario se bloquea si caduca)
         onSnapshot(query(collection(db, "productos"), where("waVendedor", "==", sesion.celular)), (snap) => {
             todosMisProductos = [];
             productosCache = {}; 
@@ -516,12 +531,14 @@
         });
     }
 
+    // Función de búsqueda/filtro local
     window.filtrarProductosLocales = () => {
         const texto = document.getElementById('p-search').value.toLowerCase().trim();
         const filtrados = todosMisProductos.filter(p => (p.nombre || '').toLowerCase().includes(texto));
         renderizarProductos(filtrados);
     };
 
+    // Modificada para bloquear si la prueba gratis de 10 días terminó
     function bloquearSegunPlan() {
         const estaBloqueado = esGratisExpirado && !esPRO;
         document.getElementById('mensaje-limite').style.display = estaBloqueado ? 'block' : 'none';
@@ -548,6 +565,7 @@
         renderizarPrevisualizaciones();
 
         window.scrollTo({top: 0, behavior: 'smooth'});
+        // bloquearSegunPlan(); // Se maneja en calcularDiasPlan
     };
 
     window.abrirModalDel = (id) => { 
